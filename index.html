@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔法の筆算道場</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&family=Hanken+Grotesk:wght@500;700;800&display=swap');
+
+        :root {
+            --primary-color: #4CAF50; /* Green */
+            --secondary-color: #FFC107; /* Amber */
+            --accent-color: #2196F3; /* Blue */
+            --bg-color: #e0f7fa; /* Light Cyan */
+            --text-color: #333;
+            --board-bg: #fff;
+            --cell-border: #ccc;
+            --active-cell-border: #2196F3;
+            --font-family: 'Mochiy Pop P One', cursive;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: linear-gradient(135deg, var(--bg-color) 0%, #a7ffeb 100%);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 90%;
+            width: 600px;
+            position: relative;
+            overflow: hidden;
+            border: 5px solid var(--primary-color);
+        }
+
+        h1 {
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .level-select {
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .level-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-family: var(--font-family);
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            outline: none;
+        }
+
+        .level-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            filter: brightness(1.1);
+        }
+
+        .level-button.selected {
+            background: var(--accent-color);
+            border: 3px solid var(--secondary-color);
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .piko-message {
+            font-size: 1.3em;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            height: 30px; /* メッセージ表示領域を確保 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .multiplication-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 2桁 + 1桁 + 1桁のスペース */
+            gap: 5px;
+            margin: 0 auto 30px auto;
+            max-width: 400px;
+            background: var(--board-bg);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            border: 3px solid var(--secondary-color);
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--cell-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            font-weight: bold;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            color: var(--text-color);
+            position: relative;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .cell.input-box {
+            background-color: #e3f2fd; /* Light Blue for input */
+            cursor: text;
+            transition: all 0.2s ease;
+        }
+
+        .cell.input-box:hover {
+            background-color: #bbdefb;
+        }
+
+        .cell.active {
+            border: 3px solid var(--active-cell-border);
+            box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
+            transform: scale(1.02);
+        }
+
+        .cell.highlight {
+            background-color: #fff9c4; /* Highlight for currently calculated numbers */
+            border: 3px solid var(--secondary-color);
+        }
+
+        .cell.correct {
+            background-color: #c8e6c9; /* Light Green for correct */
+            animation: bounceIn 0.5s forwards;
+        }
+
+        .cell.incorrect {
+            background-color: #ffcdd2; /* Light Red for incorrect */
+            animation: shake 0.5s forwards;
+        }
+
+        /* Operator cells */
+        .operator {
+            background-color: transparent;
+            border: none;
+            font-size: 2.5em;
+            color: var(--accent-color);
+            display: flex;
+            justify-content: flex-end; /* 演算子を右寄せ */
+            align-items: center;
+            padding-right: 5px;
+        }
+
+        .carry-over {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.9em;
+            color: #d32f2f; /* Red for carry-over */
+            font-weight: normal;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(5px);
+        }
+        .carry-over.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .line {
+            grid-column: 1 / -1;
+            height: 3px;
+            background: #aaa;
+            margin: 5px 0;
+            position: relative;
+            border-radius: 2px;
+        }
+        .line.bottom {
+            background: var(--primary-color);
+            margin-top: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .result-input-area {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 30px;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .key {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: var(--font-family);
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            outline: none;
+        }
+
+        .key:hover {
+            background: #42a5f5;
+            transform: translateY(-2px);
+        }
+
+        .key.delete {
+            background: #ef5350;
+        }
+        .key.delete:hover {
+            background: #e57373;
+        }
+        .key.submit {
+            background: var(--primary-color);
+            grid-column: span 3; /* 3列いっぱいに広げる */
+            font-size: 1.5em;
+            padding: 20px;
+        }
+        .key.submit:hover {
+            background: #66bb6a;
+        }
+
+        .clear-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 3em;
+            border-radius: 20px;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .clear-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .clear-overlay h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            animation: popIn 0.8s forwards;
+        }
+
+        .gem-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            animation: fadeIn 1.5s forwards;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .gem {
+            font-size: 4em;
+            animation: bounceIn 1s forwards;
+            animation-delay: var(--delay, 0s);
+        }
+
+        .restart-button {
+            margin-top: 30px;
+            background: var(--secondary-color);
+            color: var(--text-color);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-family: var(--font-family);
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            outline: none;
+        }
+
+        .restart-button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+            filter: brightness(1.1);
+        }
+
+        /* Animations */
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* ピコちゃんのスタイル（仮） */
+        .piko {
+            position: absolute;
+            top: -50px; /* 見えない位置から */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3em;
+            animation: pikoFloat 5s ease-in-out infinite;
+            pointer-events: none;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        @keyframes pikoFloat {
+            0% { top: -50px; opacity: 0; }
+            20% { top: 20px; opacity: 1; }
+            80% { top: 20px; opacity: 1; }
+            100% { top: -50px; opacity: 0; }
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 25px;
+                width: 95%;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .level-button {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+            .piko-message {
+                font-size: 1.1em;
+            }
+            .multiplication-board {
+                max-width: 300px;
+                padding: 10px;
+            }
+            .cell {
+                width: 45px;
+                height: 45px;
+                font-size: 1.5em;
+            }
+            .operator {
+                font-size: 2em;
+            }
+            .keyboard {
+                max-width: 250px;
+                gap: 8px;
+            }
+            .key {
+                font-size: 1.5em;
+                padding: 10px;
+            }
+            .clear-overlay {
+                font-size: 2em;
+            }
+            .gem {
+                font-size: 3em;
+            }
+            .restart-button {
+                padding: 12px 25px;
+                font-size: 1.1em;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="piko">✨</div>
+    <div class="container">
+        <h1>魔法の筆算道場</h1>
+
+        <div class="level-select">
+            <button class="level-button" data-level="1">見習い</button>
+            <button class="level-button" data-level="2">魔導師</button>
+            <button class="level-button" data-level="3">大賢者</button>
+        </div>
+
+        <div class="piko-message" id="pikoMessage"></div>
+
+        <div class="multiplication-board" id="multiplicationBoard">
+            </div>
+
+        <div class="keyboard" id="keyboard">
+            <button class="key" data-value="7">7</button>
+            <button class="key" data-value="8">8</button>
+            <button class="key" data-value="9">9</button>
+            <button class="key" data-value="4">4</button>
+            <button class="key" data-value="5">5</button>
+            <button class="key" data-value="6">6</button>
+            <button class="key" data-value="1">1</button>
+            <button class="key" data-value="2">2</button>
+            <button class="key" data-value="3">3</button>
+            <button class="key delete" data-value="delete">↩︎</button> <button class="key" data-value="0">0</button>
+            <button class="key submit" data-value="submit">入力</button>
+        </div>
+
+        <div class="clear-overlay" id="clearOverlay">
+            <h2 id="clearMessage"></h2>
+            <div class="gem-container" id="gemContainer"></div>
+            <button class="restart-button" id="restartButton">次の修行へ！</button>
+        </div>
+    </div>
+
+    <audio id="seCorrect" src="https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-click-1123.mp3"></audio>
+    <audio id="seIncorrect" src="https://assets.mixkit.co/sfx/preview/mixkit-fail-clip-898.mp3"></audio>
+    <audio id="seClear" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-sparkle-806.mp3"></audio>
+    <audio id="seButton" src="https://assets.mixkit.co/sfx/preview/mixkit-quick-positive-notification-269.mp3"></audio>
+
+    <script>
+        const multiplicationBoard = document.getElementById('multiplicationBoard');
+        const pikoMessage = document.getElementById('pikoMessage');
+        const keyboard = document.getElementById('keyboard');
+        const levelButtons = document.querySelectorAll('.level-button');
+        const clearOverlay = document.getElementById('clearOverlay');
+        const clearMessage = document.getElementById('clearMessage');
+        const gemContainer = document.getElementById('gemContainer');
+        const restartButton = document.getElementById('restartButton');
+
+        // 効果音
+        const seCorrect = document.getElementById('seCorrect');
+        const seIncorrect = document.getElementById('seIncorrect');
+        const seClear = document.getElementById('seClear');
+        const seButton = document.getElementById('seButton');
+
+        let currentProblem = null;
+        let currentLevel = 1;
+        let activeCell = null;
+        let currentStep = 0; // 0: 1の位掛け算, 1: 1の位くり上がり, 2: 10の位掛け算, 3: 10の位くり上がり, 4: 100の位掛け算, 5: 100の位くり上がり, 6: 1の位足し算, 7: 10の位足し算, 8: 10の位足し算くり上がり, 9: 100の位足し算, 10: 100の位足し算くり上がり, 11: 1000の位足し算
+        let userInput = [];
+
+        // --- 問題生成ロジック ---
+        function generateProblem(level) {
+            let num1, num2;
+            let problem = { num1: 0, num2: 0, steps: [], finalResult: [] };
+
+            const checkLevel1Conditions = (n1, n2) => {
+                const s1 = (n1 % 10) * (n2 % 10); // 1の位同士の積
+                if (s1 >= 10) return false;
+
+                const s2 = Math.floor(n1 / 10) * (n2 % 10); // num1の10の位とnum2の1の位
+                if (s2 >= 10) return false;
+
+                const s3 = (n1 % 10) * Math.floor(n2 / 10); // num1の1の位とnum2の10の位
+                if (s3 >= 10) return false;
+
+                const s4 = Math.floor(n1 / 10) * Math.floor(n2 / 10); // num1の10の位とnum2の10の位
+                if (s4 >= 10) return false;
+
+                // 最終足し算のくり上がりなしチェック
+                const partial1 = n1 * (n2 % 10);
+                const partial2 = n1 * Math.floor(n2 / 10) * 10;
+                
+                // 例：23 * 12
+                // (23 * 2) = 46
+                // (23 * 1) = 23 -> 230
+                //   46
+                // +230
+                // -----
+                //  276
+
+                // 1の位の計算結果 (num1の1の位 * num2の1の位)
+                let unit1Product = (n1 % 10) * (n2 % 10);
+                if (unit1Product >= 10) return false; // そもそも掛け算の途中でくり上がり
+
+                // num1の10の位 * num2の1の位 + 繰り上がり
+                let tens1Product = Math.floor(n1 / 10) * (n2 % 10);
+                if (tens1Product >= 10) return false; // ここでもくり上がりなし
+
+                // num1の1の位 * num2の10の位 + 繰り上がり
+                let unit2Product = (n1 % 10) * Math.floor(n2 / 10);
+                if (unit2Product >= 10) return false; // ここでもくり上がりなし
+
+                // num1の10の位 * num2の10の位 + 繰り上がり
+                let tens2Product = Math.floor(n1 / 10) * Math.floor(n2 / 10);
+                if (tens2Product >= 10) return false; // ここでもくり上がりなし
+
+                // 部分積の計算
+                const partialProduct1 = n1 * (n2 % 10); // 例: 23 * 2 = 46
+                const partialProduct2 = n1 * Math.floor(n2 / 10); // 例: 23 * 1 = 23
+
+                let addCarry = 0;
+                // 足し算の一の位
+                if ((partialProduct1 % 10) >= 10) return false; // ありえないが念のため
+
+                // 足し算の十の位
+                let sumTens = Math.floor(partialProduct1 / 10) + (partialProduct2 % 10);
+                if (sumTens >= 10) return false;
+
+                // 足し算の百の位
+                let sumHundreds = Math.floor(partialProduct2 / 10) + Math.floor(sumTens / 10);
+                if (sumHundreds >= 10) return false;
+
+                return true;
+            };
+
+            const checkLevel2Conditions = (n1, n2) => {
+                // 掛け算の過程で必ず1回以上くり上がりが発生
+                // 1の位の積
+                if ((n1 % 10) * (n2 % 10) >= 10) return true;
+                // num1の10の位 * num2の1の位
+                if (Math.floor(n1 / 10) * (n2 % 10) >= 10) return true;
+                // num1の1の位 * num2の10の位
+                if ((n1 % 10) * Math.floor(n2 / 10) >= 10) return true;
+                // num1の10の位 * num2の10の位
+                if (Math.floor(n1 / 10) * Math.floor(n2 / 10) >= 10) return true;
+                
+                // より厳密なチェック: 途中の繰り上がり
+                // n1=53, n2=27 -> 53*7 = 371 (3*7=21, 5*7+2=37) -> 2回繰り上がり
+                // (n1%10) * (n2%10)
+                let c1 = (n1 % 10) * (n2 % 10);
+                let c1Carry = Math.floor(c1 / 10);
+
+                // floor(n1/10) * (n2%10) + c1Carry
+                let c2 = Math.floor(n1 / 10) * (n2 % 10) + c1Carry;
+                let c2Carry = Math.floor(c2 / 10);
+                
+                if (c1Carry > 0 || c2Carry > 0) return true; // 最初の部分積でくり上がりがあればOK
+
+                c1 = (n1 % 10) * Math.floor(n2 / 10);
+                c1Carry = Math.floor(c1 / 10);
+
+                c2 = Math.floor(n1 / 10) * Math.floor(n2 / 10) + c1Carry;
+                c2Carry = Math.floor(c2 / 10);
+
+                if (c1Carry > 0 || c2Carry > 0) return true; // 2番目の部分積でくり上がりがあればOK
+
+                return false;
+            };
+
+            const checkLevel3Conditions = (n1, n2) => {
+                // かけ算の過程でくり上がりがあり、かつ最後の足し算でもくり上がりが発生
+                if (!checkLevel2Conditions(n1, n2)) return false; // まずレベル2の条件を満たす
+
+                const partialProduct1 = n1 * (n2 % 10);
+                const partialProduct2 = n1 * Math.floor(n2 / 10) * 10;
+
+                let carry = 0;
+                let sum = [];
+
+                // 1の位
+                sum[0] = (partialProduct1 % 10);
+
+                // 10の位
+                let tensSum = Math.floor(partialProduct1 / 10) % 10 + Math.floor(partialProduct2 / 10) % 10;
+                if (tensSum >= 10) {
+                    carry = Math.floor(tensSum / 10);
+                    return true; // 10の位でくり上がり
+                }
+
+                // 100の位
+                let hundredsSum = Math.floor(partialProduct1 / 100) % 10 + Math.floor(partialProduct2 / 100) % 10 + carry;
+                if (hundredsSum >= 10) {
+                    return true; // 100の位でくり上がり
+                }
+                
+                return false;
+            };
+
+            // 問題生成ループ
+            let attempts = 0;
+            while (attempts < 1000) { // 無限ループ防止
+                num1 = Math.floor(Math.random() * 90) + 10; // 10-99
+                num2 = Math.floor(Math.random() * 90) + 10; // 10-99
+
+                if (level === 1 && checkLevel1Conditions(num1, num2)) {
+                    break;
+                } else if (level === 2 && checkLevel2Conditions(num1, num2)) {
+                    break;
+                } else if (level === 3 && checkLevel3Conditions(num1, num2)) {
+                    break;
+                }
+                attempts++;
+            }
+
+            if (attempts >= 1000) {
+                console.warn(`レベル${level}の問題生成に失敗、ランダム生成された問題を使用します。`);
+                num1 = Math.floor(Math.random() * 90) + 10;
+                num2 = Math.floor(Math.random() * 90) + 10;
+            }
+
+            problem.num1 = num1;
+            problem.num2 = num2;
+
+            // 各ステップの計算結果を格納
+            const a = Math.floor(num1 / 10); // num1の十の位
+            const b = num1 % 10;             // num1の一の位
+            const c = Math.floor(num2 / 10); // num2の十の位
+            const d = num2 % 10;             // num2の一の位
+
+            // --- 部分積1 (num1 * d) ---
+            let p1_units = b * d; // b * d
+            let p1_carry1 = Math.floor(p1_units / 10);
+            p1_units %= 10;
+
+            let p1_tens = a * d + p1_carry1; // a * d + くり上がり
+            let p1_carry2 = Math.floor(p1_tens / 10);
+            p1_tens %= 10;
+
+            let partialProduct1 = `${p1_carry2 || ''}${p1_tens}${p1_units}`; // 3桁になる可能性
+
+            // --- 部分積2 (num1 * c) ---
+            let p2_units = b * c; // b * c
+            let p2_carry1 = Math.floor(p2_units / 10);
+            p2_units %= 10;
+
+            let p2_tens = a * c + p2_carry1; // a * c + くり上がり
+            let p2_carry2 = Math.floor(p2_tens / 10);
+            p2_tens %= 10;
+
+            let partialProduct2 = `${p2_carry2 || ''}${p2_tens}${p2_units}`; // 3桁になる可能性
+
+            // --- 最終結果 (num1 * num2) ---
+            const finalResultNum = num1 * num2;
+            problem.finalResult = String(finalResultNum).split('').map(Number);
+            
+            // Steps 詳細定義
+            problem.steps = [
+                // 1. num1の一の位とnum2の一の位を掛ける (b * d)
+                { type: 'multiply', target: [b, d], result: String(b * d), inputPos: [5, 3], carryPos: [4, 2] }, // 1の位の結果とくり上がり
+                // 2. num1の十の位とnum2の一の位を掛ける (a * d) + くり上がり
+                { type: 'multiply', target: [a, d], result: String(p1_tens), inputPos: [5, 2], carryPos: [4, 1] }, // 10の位の結果とくり上がり
+                // 3. (あれば) num1の十の位とnum2の一の位を掛けた結果のくり上がり部分 (p1_carry2)
+                { type: 'carry-result', result: String(p1_carry2), inputPos: [5, 1] }, // p1_carry2を最終行に表示
+
+                // 4. num1の一の位とnum2の十の位を掛ける (b * c)
+                { type: 'multiply', target: [b, c], result: String(b * c), inputPos: [6, 3], carryPos: [4, 2], shift: true }, // 1の位の結果とくり上がり (シフト)
+                // 5. num1の十の位とnum2の十の位を掛ける (a * c) + くり上がり
+                { type: 'multiply', target: [a, c], result: String(p2_tens), inputPos: [6, 2], carryPos: [4, 1], shift: true }, // 10の位の結果とくり上がり (シフト)
+                // 6. (あれば) num1の十の位とnum2の十の位を掛けた結果のくり上がり部分 (p2_carry2)
+                { type: 'carry-result', result: String(p2_carry2), inputPos: [6, 1], shift: true }, // p2_carry2を最終行に表示
+
+                // 最終的な足し算
+                // 7. 一の位の足し算 (部分積1の一の位)
+                { type: 'add', target: [partialProduct1[partialProduct1.length - 1] || '0', '0'], result: String(finalResultNum %
+
+                                                                                                                 
