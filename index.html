@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>魔法の筆算道場 - 修行記録版</title>
+    <title>魔法の筆算道場 - 修正完了版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap');
         :root {
@@ -25,70 +25,65 @@
             position: relative;
         }
 
+        .top-btns { display: flex; justify-content: space-between; width: 100%; padding: 0 5px; margin-bottom: 5px; }
+        .icon-btn { background: white; border: 1px solid #ccc; border-radius: 8px; padding: 4px 8px; cursor: pointer; font-family: var(--font-family); font-size: 11px; }
+
         .stats-area { margin-bottom: 5px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
-        .total-gems { color: #fbc02d; font-weight: bold; font-size: 18px; }
-        .title-display { color: #e91e63; font-size: 14px; font-weight: bold; background: #fff9f0; padding: 4px 15px; border-radius: 20px; border: 2px solid #ffe0b2; }
+        .total-gems { color: #fbc02d; font-weight: bold; font-size: 16px; }
+        .title-display { color: #e91e63; font-size: 13px; font-weight: bold; background: #fff9f0; padding: 2px 10px; border-radius: 20px; border: 1px solid #ffe0b2; }
         
-        /* 記録・メニューボタン */
-        .top-btns { display: flex; justify-content: space-between; width: 100%; padding: 0 10px; margin-bottom: 10px; }
-        .icon-btn { background: white; border: 2px solid #ddd; border-radius: 10px; padding: 5px 10px; cursor: pointer; font-family: var(--font-family); font-size: 12px; }
+        .menu-overlay, .record-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 200; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px; }
+        .record-overlay { display: none; justify-content: flex-start; padding-top: 30px; }
 
-        .menu-overlay, .record-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 200; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .record-overlay { display: none; overflow-y: auto; justify-content: flex-start; }
-
-        .level-btn { width: 95%; padding: 12px; margin: 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-size: 16px; color: white; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
+        .level-btn { width: 90%; padding: 12px; margin: 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-size: 16px; color: white; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
         .lv1 { background: #8bc34a; } .lv2 { background: #ff9800; } .lv3 { background: #f44336; } .lv4 { background: #9c27b0; }
 
         .board { 
             display: inline-grid; 
-            gap: 4px; background: #fff; padding: 25px 8px 8px; 
+            gap: 4px; background: #fff; padding: 20px 8px 8px; 
             border-radius: 15px; border: 3px solid #ddd; margin-bottom: 10px; 
             position: relative; width: 100%;
         }
         .board.col5 { grid-template-columns: repeat(5, 1fr); }
         .board.col6 { grid-template-columns: repeat(6, 1fr); }
 
-        .cell { aspect-ratio: 1/1; display: flex; justify-content: center; align-items: center; font-size: min(7vw, 28px); position: relative; border-radius: 5px; font-weight: bold; }
+        .cell { aspect-ratio: 1/1; display: flex; justify-content: center; align-items: center; font-size: min(7vw, 28px); position: relative; border-radius: 5px; }
         .num-display { position: relative; z-index: 2; pointer-events: none; }
-        .memo-canvas { position: absolute; top: -18px; left: 0; width: 30px; height: 30px; background: rgba(255, 243, 224, 0.8); border: 1px solid #ffccbc; border-radius: 4px; z-index: 10; touch-action: none; }
+        .memo-canvas { position: absolute; top: -16px; left: 0; width: 28px; height: 28px; background: rgba(255,243,224,0.7); border: 1px solid #ffccbc; border-radius: 4px; z-index: 10; touch-action: none; }
 
         .cell.input { background: #e3f2fd; border: 2px dashed var(--accent); }
-        .cell.active { border: 3px solid #ff5722 !important; background: #fff; box-shadow: 0 0 10px rgba(255,87,34,0.4); }
-        .cell.highlight { background: #fff9c4 !important; }
+        .cell.active { border: 3px solid #ff5722 !important; background: #fff; box-shadow: 0 0 8px rgba(255,87,34,0.5); }
+        .cell.highlight { background: #fff59d !important; }
         .line { height: 4px; background: #444; margin: 4px 0; border-radius: 2px; }
         .line.w5 { grid-column: 1 / 6; }
         .line.w6 { grid-column: 1 / 7; }
 
         .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; }
         .key { padding: 12px 0; font-size: 20px; border: none; border-radius: 10px; background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); box-shadow: 0 4px 0 #1976D2; }
-        .key:active { transform: translateY(2px); box-shadow: 0 2px 0 #1976D2; }
         .key.ok { background: var(--primary); box-shadow: 0 4px 0 #388E3C; grid-column: span 2; }
 
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 15px; z-index: 100; }
-        
-        /* 記録テーブル用 */
-        .stat-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
-        .stat-table th, .stat-table td { border-bottom: 1px solid #eee; padding: 10px 5px; text-align: center; }
-        .reset-btn { margin-top: 20px; background: #999; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-family: var(--font-family); font-size: 10px; }
+        .stat-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
+        .stat-table th, .stat-table td { border-bottom: 1px solid #eee; padding: 8px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="levelMenu" class="menu-overlay">
-        <h2 style="color:var(--primary); margin-top:0;">修行を選べ！</h2>
-        <button class="level-btn lv1" onclick="startLevel(1)">Lv1 (💎1) 2×2: 1〜4</button>
-        <button class="level-btn lv2" onclick="startLevel(2)">Lv2 (💎3) 2×2: 1〜9</button>
-        <button class="level-btn lv3" onclick="startLevel(3)">Lv3 (💎5) 2×2: 0あり</button>
-        <button class="level-btn lv4" onclick="startLevel(4)">Lv4 (💎7) 3×2: 伝説の挑戦</button>
-        <button onclick="toggleRecord(true)" style="margin-top:15px; background:none; border:none; color:var(--accent); font-family:var(--font-family); cursor:pointer;">📜 修行の記録を見る</button>
+        <h2 style="color:var(--primary);">修行を選べ！</h2>
+        <button class="level-btn lv1" onclick="startLevel(1)">Lv1 (💎1) 2×2</button>
+        <button class="level-btn lv2" onclick="startLevel(2)">Lv2 (💎3) 2×2</button>
+        <button class="level-btn lv3" onclick="startLevel(3)">Lv3 (💎5) 2×2</button>
+        <button class="level-btn lv4" onclick="startLevel(4)">Lv4 (💎7) 3×2</button>
+        <button onclick="toggleRecord(true)" style="margin-top:10px; background:none; border:none; color:var(--accent); font-family:var(--font-family); cursor:pointer;">📜 修行の記録</button>
     </div>
 
     <div id="recordScreen" class="record-overlay">
         <h2 style="color:var(--accent);">修行の成果</h2>
         <div id="recordContent" style="width:100%;"></div>
-        <button class="level-btn lv1" onclick="toggleRecord(false)" style="margin-top:15px;">メニューに戻る</button>
-        <button class="reset-btn" onclick="resetStats()">成績をリセットする（データが消えます）</button>
+        <button class="level-btn lv1" onclick="toggleRecord(false)" style="margin-top:20px;">戻る</button>
+        <button onclick="resetStats()" style="margin-top:20px; font-size:10px; color:#999; background:none; border:none;">成績をリセット</button>
     </div>
 
     <div class="top-btns">
@@ -111,9 +106,7 @@
         <button class="key ok" onclick="check()">OK!</button>
     </div>
 
-    <div style="margin-top:10px;">
-        <button onclick="clearAllMemos()" style="font-size:10px; color:#999; border:none; background:none; cursor:pointer;">メモを全部消す</button>
-    </div>
+    <div style="margin-top:10px;"><button onclick="clearAllMemos()" style="font-size:10px; color:#999; background:none; border:none;">メモ消去</button></div>
 
     <div class="overlay" id="clearOverlay">
         <h2 id="clearMsg">合格！</h2>
@@ -124,56 +117,25 @@
 
 <script>
     const titles = ["魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士", "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】", "【筆算の神】"];
-    let n1, n2, steps=[], cur=0, currentLevel = 1, mistakes = 0;
-    
-    // データロード
-    let stats = JSON.parse(localStorage.getItem('mathStats')) || {
-        totalGems: 0,
-        lv1: { solve: 0, miss: 0 },
-        lv2: { solve: 0, miss: 0 },
-        lv3: { solve: 0, miss: 0 },
-        lv4: { solve: 0, miss: 0 }
-    };
-
+    let n1, n2, steps=[], cur=0, currentLevel = 1;
+    let stats = JSON.parse(localStorage.getItem('mathStats')) || { totalGems: 0, lv1:{solve:0,miss:0}, lv2:{solve:0,miss:0}, lv3:{solve:0,miss:0}, lv4:{solve:0,miss:0} };
     const soundMagic = new Audio('https://actions.google.com/sounds/v1/cartoon/glissando.ogg');
 
     function save() { localStorage.setItem('mathStats', JSON.stringify(stats)); }
-
     function startLevel(lv) { currentLevel = lv; document.getElementById('levelMenu').style.display = 'none'; initGame(); }
     function backToMenu() { document.getElementById('levelMenu').style.display = 'flex'; }
-
-    function toggleRecord(show) {
-        const rs = document.getElementById('recordScreen');
-        if (show) {
-            updateRecordHTML();
-            rs.style.display = 'flex';
-        } else {
-            rs.style.display = 'none';
-        }
+    function toggleRecord(show) { 
+        if(show) updateRecordHTML();
+        document.getElementById('recordScreen').style.display = show ? 'flex' : 'none'; 
     }
-
     function updateRecordHTML() {
-        let html = `<table class="stat-table">
-            <tr><th>修練</th><th>クリア</th><th>正答率</th></tr>`;
-        [1,2,3,4].forEach(lv => {
-            const data = stats[`lv${lv}`];
-            const accuracy = data.solve === 0 ? "-" : Math.max(0, Math.floor(((data.solve * 10) / (data.solve * 10 + data.miss)) * 100)) + "%";
-            html += `<tr><td>Lv${lv}</td><td>${data.solve}回</td><td>${accuracy}</td></tr>`;
-        });
-        html += `</table>`;
-        document.getElementById('recordContent').innerHTML = html;
+        let html = `<table class="stat-table"><tr><th>修練</th><th>回数</th><th>ミス</th></tr>`;
+        [1,2,3,4].forEach(lv => { const d=stats[`lv${lv}`]; html+=`<tr><td>Lv${lv}</td><td>${d.solve}</td><td>${d.miss}</td></tr>`; });
+        document.getElementById('recordContent').innerHTML = html + `</table>`;
     }
-
-    function resetStats() {
-        if (confirm("これまでの修行の記録と宝石をすべて消去しますか？")) {
-            stats = { totalGems: 0, lv1: { solve: 0, miss: 0 }, lv2: { solve: 0, miss: 0 }, lv3: { solve: 0, miss: 0 }, lv4: { solve: 0, miss: 0 } };
-            save(); updateStats(); updateRecordHTML();
-            alert("リセットしました。また一から修行しましょう！");
-        }
-    }
+    function resetStats() { if(confirm("成績をリセットしますか？")){ stats={totalGems:0,lv1:{solve:0,miss:0},lv2:{solve:0,miss:0},lv3:{solve:0,miss:0},lv4:{solve:0,miss:0}}; save(); updateStats(); toggleRecord(false); } }
 
     function initGame() {
-        mistakes = 0;
         document.getElementById('clearOverlay').style.display='none';
         const b = document.getElementById('board');
         if (currentLevel === 4) { b.className = "board col6"; setup3x2(); } 
@@ -184,8 +146,7 @@
     const isLead0 = (val, isHighestDigit) => (val === 0 && isHighestDigit);
 
     function setup2x2() {
-        let min = (currentLevel === 1) ? 1 : 0;
-        let max = (currentLevel === 1) ? 4 : 9;
+        let min = (currentLevel === 1) ? 1 : 0, max = (currentLevel === 1) ? 4 : 9;
         const gen = () => Math.floor(Math.random() * (max - min + 1)) + min;
         n1 = (gen()||1)*10 + gen(); n2 = (gen()||1)*10 + gen();
         const d10=Math.floor(n2/10), d1=n2%10, p1=n1*d1, p2=n1*d10, total=n1*n2;
@@ -217,10 +178,10 @@
         let html = "";
         if (currentLevel === 4) {
             const s1=String(n1).padStart(3,' '), s2=String(n2).padStart(2,' ');
-            html = `<div class="cell"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell">${s1[2]}</div><div class="cell"></div><div class="cell"></div>` +
-                   `<div class="cell">×</div><div class="cell"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell"></div><div class="cell"></div>` +
+            html = `<div class="cell"></div><div class="cell"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell">${s1[2]}</div><div class="cell"></div>` +
+                   `<div class="cell"></div><div class="cell">×</div><div class="cell"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell"></div>` +
                    `<div class="line w6"></div>` +
-                   `<div id="p1_1000" class="cell input"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div><div class="cell"></div>` +
+                   `<div class="cell"></div><div id="p1_1000" class="cell input"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div>` +
                    `<div id="p2_10000" class="cell input"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell"></div>` +
                    `<div class="line w6"></div>` +
                    `<div id="a10000" class="cell input"></div><div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell"></div>`;
@@ -259,40 +220,29 @@
 
     function numInput(v) {
         const cell = document.getElementById(steps[cur].id);
-        if(cell) { const s = cell.querySelector('.num-display'); s.textContent = (v==='del' ? "" : v); }
+        if(cell) cell.querySelector('.num-display').textContent = (v==='del' ? "" : v);
     }
 
     function check() {
-        const s = steps[cur]; const cell = document.getElementById(s.id);
+        const s = steps[cur], cell = document.getElementById(s.id);
         if(!cell) return;
-        const inputVal = cell.querySelector('.num-display').textContent;
-        if(inputVal !== "" && parseInt(inputVal) === s.ans) {
+        if(cell.querySelector('.num-display').textContent !== "" && parseInt(cell.querySelector('.num-display').textContent) === s.ans) {
             cell.classList.remove('input','active'); cell.style.color="blue";
-            soundMagic.play(); cur++;
-            checkAutoSkip();
+            soundMagic.play(); cur++; checkAutoSkip();
             if(cur >= steps.length) gameClear(); else update();
-        } else { 
-            cell.querySelector('.num-display').textContent = ""; 
-            stats[`lv${currentLevel}`].miss++; // 間違いをカウント
-            save();
-        }
+        } else { cell.querySelector('.num-display').textContent = ""; stats[`lv${currentLevel}`].miss++; save(); }
     }
 
     function checkAutoSkip() {
         while (cur < steps.length && steps[cur].ans === 0 && steps[cur].skip) {
             const skipCell = document.getElementById(steps[cur].id);
-            if (skipCell) {
-                skipCell.classList.remove('input','active');
-                skipCell.style.color = "blue";
-            }
+            if (skipCell) { skipCell.classList.remove('input','active'); skipCell.style.color = "blue"; }
             cur++;
         }
     }
 
     function gameClear() {
-        let earn = [0,1,3,5,7][currentLevel];
-        stats.totalGems += earn;
-        stats[`lv${currentLevel}`].solve++;
+        let earn = [0,1,3,5,7][currentLevel]; stats.totalGems += earn; stats[`lv${currentLevel}`].solve++;
         save(); updateStats();
         document.getElementById('gemsDisplay').innerText = "💎".repeat(Math.min(earn, 7));
         document.getElementById('clearOverlay').style.display='flex';
@@ -300,8 +250,7 @@
 
     function updateStats() {
         document.getElementById('totalGemsCount').innerText = stats.totalGems;
-        let titleIdx = Math.min(Math.floor(stats.totalGems / 10), titles.length - 1);
-        document.getElementById('currentTitle').innerText = titles[titleIdx];
+        document.getElementById('currentTitle').innerText = titles[Math.min(Math.floor(stats.totalGems / 10), titles.length - 1)];
     }
 
     function update() {
@@ -309,21 +258,11 @@
         if(cur < steps.length) {
             const active = document.getElementById(steps[cur].id);
             if(active) active.classList.add('active');
-            steps[cur].h.forEach(idx => {
-                const t = document.querySelectorAll('.cell')[idx]; if(t) t.classList.add('highlight');
-            });
+            steps[cur].h.forEach(idx => { const t = document.querySelectorAll('.cell')[idx]; if(t) t.classList.add('highlight'); });
         }
     }
 
-    function showHint() {
-        if(steps[cur]) {
-            const active = document.getElementById(steps[cur].id);
-            active.querySelector('.num-display').textContent = steps[cur].ans;
-            stats[`lv${currentLevel}`].miss += 3; // ヒントはペナルティ多め
-            save();
-        }
-    }
-
+    function showHint() { if(steps[cur]) { document.getElementById(steps[cur].id).querySelector('.num-display').textContent = steps[cur].ans; stats[`lv${currentLevel}`].miss += 3; save(); } }
     function clearAllMemos() { document.querySelectorAll('.memo-canvas').forEach(c => c.getContext('2d').clearRect(0,0,40,40)); }
     updateStats();
 </script>
