@@ -17,7 +17,6 @@
         .level-btn { border: none; padding: 8px 12px; border-radius: 12px; cursor: pointer; font-family: var(--font-family); background: #eee; transition: 0.3s; }
         .level-btn.active { background: var(--secondary); transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 
-        /* 筆算ボードのレイアウト修正 */
         .board {
             display: inline-grid; grid-template-columns: repeat(5, 50px); gap: 2px;
             background: #fff; padding: 20px; border-radius: 15px; border: 3px solid #ddd;
@@ -25,7 +24,6 @@
         }
         .cell { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-size: 28px; position: relative; border-radius: 5px; }
         
-        /* 数字が光るアニメーション */
         .cell.highlight { 
             background: #fff59d; border: 3px solid var(--secondary); 
             animation: pulse 1s infinite alternate; z-index: 2;
@@ -83,14 +81,16 @@
         const d1=Math.floor(n1/10), d2=n1%10, d3=Math.floor(n2/10), d4=n2%10;
         const p1=n1*d4, p2=n1*d3, total=n1*n2;
 
+        // ハイライト用インデックス（0-19のセル番号）
+        // 2:n1十位, 3:n1一位, 7:n2十位, 8:n2一位, 13:p1一位, 18:p2一位(0の場所)
         steps = [
-            {id:'p1_1', ans:p1%10, h:[3,8]},       // n1一の位 × n2一の位
-            {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]}, // n1十の位 × n2一の位
+            {id:'p1_1', ans:p1%10, h:[3,8]},       // n1一 × n2一
+            {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]}, // n1十 × n2一
             {id:'p1_100', ans:Math.floor(p1/100)||0, h:[2,8]},
-            {id:'p2_10', ans:p2%10, h:[3,7]},      // n1一の位 × n2十の位
-            {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]}, // n1十の位 × n2十の位
+            {id:'p2_10', ans:p2%10, h:[3,7]},      // n1一 × n2十
+            {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]}, // n1十 × n2十
             {id:'p2_1000', ans:Math.floor(p2/100)||0, h:[2,7]},
-            {id:'a1', ans:total%10, h:[13,18]},    // 足し算
+            {id:'a1', ans:total%10, h:[13,18]},    // 足し算一の位（p1一位とp2十位=0）
             {id:'a10', ans:Math.floor(total/10)%10, h:[12,17]},
             {id:'a100', ans:Math.floor(total/100)%10, h:[11,16]},
             {id:'a1000', ans:Math.floor(total/1000)||0, h:[10,15]}
@@ -103,29 +103,30 @@
         const b = document.getElementById('board');
         const s1=String(n1).padStart(2,' '), s2=String(n2).padStart(2,' ');
         b.innerHTML = `
-            <div class="cell op"></div><div class="cell op"></div><div class="cell" id="idx_2">${s1[0]}</div><div class="cell" id="idx_3">${s1[1]}</div><div class="cell op"></div>
-            <div class="cell op">×</div><div class="cell op"></div><div class="cell" id="idx_7">${s2[0]}</div><div class="cell" id="idx_8">${s2[1]}</div><div class="cell op"></div>
+            <div class="cell op"></div><div class="cell op"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell op"></div>
+            <div class="cell op">×</div><div class="cell op"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell op"></div>
             <div class="line"></div>
-            <div class="cell op"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input" id="idx_13"></div><div class="cell op"></div>
-            <div class="cell op"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input" id="idx_18"></div><div class="cell" style="color:#ccc">0</div>
+            <div class="cell op"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell op"></div>
+            <div class="cell op"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div>
             <div class="line"></div>
             <div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>
         `;
     }
 
     function update() {
-        document.querySelectorAll('.cell').forEach(c=>c.classList.remove('active','highlight'));
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach(c=>c.classList.remove('active','highlight'));
         const s = steps[cur];
         const active = document.getElementById(s.id);
         if(active) active.classList.add('active');
         s.h.forEach(idx => {
-            const target = document.querySelectorAll('.cell')[idx];
-            if(target) target.classList.add('highlight');
+            if(cells[idx]) cells[idx].classList.add('highlight');
         });
     }
 
     function input(v) {
         const active = document.getElementById(steps[cur].id);
+        if(!active) return;
         if(v==='del') active.innerText = "";
         else active.innerText = v;
     }
@@ -133,7 +134,7 @@
     function check() {
         const s = steps[cur];
         const active = document.getElementById(s.id);
-        if(parseInt(active.innerText)===s.ans) {
+        if(active && parseInt(active.innerText)===s.ans) {
             active.classList.remove('input'); active.style.color="blue";
             soundOk.play(); cur++;
             if(cur>=steps.length) {
@@ -141,7 +142,8 @@
                 document.getElementById('clearOverlay').style.display='flex';
             } else update();
         } else {
-            active.innerText=""; document.getElementById('piko').innerText="ちがうよ！もういちど！";
+            if(active) active.innerText=""; 
+            document.getElementById('piko').innerText="ちがうよ！もういちど！";
             setTimeout(()=>document.getElementById('piko').innerText="修行中...", 1000);
         }
     }
