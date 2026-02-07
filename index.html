@@ -81,8 +81,14 @@
         const d1=Math.floor(n1/10), d2=n1%10, d3=Math.floor(n2/10), d4=n2%10;
         const p1=n1*d4, p2=n1*d3, total=n1*n2;
 
-        // ハイライト用インデックス（0-19のセル番号）
-        // 2:n1十位, 3:n1一位, 7:n2十位, 8:n2一位, 13:p1一位, 18:p2一位(0の場所)
+        // ハイライト用インデックス（5列×4行の0〜19）
+        // 行0: [0, 1, 2, 3, 4]  (上段: n1)
+        // 行1: [5, 6, 7, 8, 9]  (中段: x n2)
+        // 行2: [10,11,12,13,14] (部分積1)
+        // 行3: [15,16,17,18,19] (部分積2) -> 18番に0を置く
+        // 行4: (ライン)
+        // 行5: [20,21,22,23,24] (合計)
+        
         steps = [
             {id:'p1_1', ans:p1%10, h:[3,8]},       // n1一 × n2一
             {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]}, // n1十 × n2一
@@ -90,7 +96,7 @@
             {id:'p2_10', ans:p2%10, h:[3,7]},      // n1一 × n2十
             {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]}, // n1十 × n2十
             {id:'p2_1000', ans:Math.floor(p2/100)||0, h:[2,7]},
-            {id:'a1', ans:total%10, h:[13,18]},    // 足し算一の位（p1一位とp2十位=0）
+            {id:'a1', ans:total%10, h:[13,18]},    // 合計一
             {id:'a10', ans:Math.floor(total/10)%10, h:[12,17]},
             {id:'a100', ans:Math.floor(total/100)%10, h:[11,16]},
             {id:'a1000', ans:Math.floor(total/1000)||0, h:[10,15]}
@@ -107,7 +113,7 @@
             <div class="cell op">×</div><div class="cell op"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell op"></div>
             <div class="line"></div>
             <div class="cell op"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell op"></div>
-            <div class="cell op"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div>
+            <div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell op"></div>
             <div class="line"></div>
             <div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>
         `;
@@ -134,7 +140,7 @@
     function check() {
         const s = steps[cur];
         const active = document.getElementById(s.id);
-        if(active && parseInt(active.innerText)===s.ans) {
+        if(active && (active.innerText !== "") && parseInt(active.innerText)===s.ans) {
             active.classList.remove('input'); active.style.color="blue";
             soundOk.play(); cur++;
             if(cur>=steps.length) {
