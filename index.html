@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>魔法の筆算道場 - 新・五段階修行版</title>
+    <title>魔法の筆算道場 - レベル1最適化版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap');
         :root {
@@ -26,21 +26,10 @@
             position: relative;
         }
 
-        .game-main {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: center;
-            width: 100%;
-        }
+        .game-main { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; }
 
         @media (min-width: 768px) {
-            .game-main {
-                flex-direction: row;
-                justify-content: center;
-                align-items: flex-start;
-                padding: 10px;
-            }
+            .game-main { flex-direction: row; justify-content: center; align-items: flex-start; padding: 10px; }
             .board-container { flex: 1; max-width: 400px; }
             .keyboard-container { width: 320px; }
             body { align-items: center; }
@@ -107,7 +96,6 @@
         <h2 style="color:var(--accent);">修行の成果</h2>
         <div id="recordContent" style="width:100%;"></div>
         <button class="level-btn lv1" onclick="toggleRecord(false)" style="margin-top:20px;">戻る</button>
-        <button onclick="resetStats()" style="margin-top:20px; font-size:10px; color:#999; background:none; border:none;">成績をリセット</button>
     </div>
 
     <div class="top-btns">
@@ -125,7 +113,6 @@
             <div class="board" id="board"></div>
             <div style="margin-top:5px;"><button onclick="clearAllMemos()" style="font-size:10px; color:#999; background:none; border:none;">メモ消去</button></div>
         </div>
-
         <div class="keyboard-container">
             <div class="keyboard">
                 <button class="key" onclick="numInput(1)">1</button><button class="key" onclick="numInput(2)">2</button><button class="key" onclick="numInput(3)">3</button>
@@ -147,66 +134,52 @@
 <script>
     const titles = ["魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士", "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】", "【筆算の神】"];
     let n1, n2, steps=[], cur=0, currentLevel = 1;
-    // 統計データにLv5を追加
     let stats = JSON.parse(localStorage.getItem('mathStats')) || { totalGems: 0, lv1:{solve:0,miss:0}, lv2:{solve:0,miss:0}, lv3:{solve:0,miss:0}, lv4:{solve:0,miss:0}, lv5:{solve:0,miss:0} };
-    if(!stats.lv5) stats.lv5 = {solve:0, miss:0}; // 旧データ用
-
     const soundMagic = new Audio('https://actions.google.com/sounds/v1/cartoon/glissando.ogg');
 
     function save() { localStorage.setItem('mathStats', JSON.stringify(stats)); }
     function startLevel(lv) { currentLevel = lv; document.getElementById('levelMenu').style.display = 'none'; initGame(); }
     function backToMenu() { document.getElementById('levelMenu').style.display = 'flex'; }
-    function toggleRecord(show) { 
-        if(show) updateRecordHTML();
-        document.getElementById('recordScreen').style.display = show ? 'flex' : 'none'; 
-    }
+    function toggleRecord(show) { if(show) updateRecordHTML(); document.getElementById('recordScreen').style.display = show ? 'flex' : 'none'; }
     function updateRecordHTML() {
         let html = `<table class="stat-table"><tr><th>修練</th><th>回数</th><th>ミス</th></tr>`;
         [1,2,3,4,5].forEach(lv => { const d=stats[`lv${lv}`]; html+=`<tr><td>Lv${lv}</td><td>${d.solve}</td><td>${d.miss}</td></tr>`; });
         document.getElementById('recordContent').innerHTML = html + `</table>`;
     }
-    function resetStats() { if(confirm("成績をリセットしますか？")){ stats={totalGems:0,lv1:{solve:0,miss:0},lv2:{solve:0,miss:0},lv3:{solve:0,miss:0},lv4:{solve:0,miss:0},lv5:{solve:0,miss:0}}; save(); updateStats(); toggleRecord(false); } }
 
     function initGame() {
         document.getElementById('clearOverlay').style.display='none';
         const b = document.getElementById('board');
-        // Lv5だけ3x2形式、それ以外は2x2形式(2x1含む)
         if (currentLevel === 5) { b.className = "board col6"; setup3x2(); } 
         else { b.className = "board col5"; setup2x2(); }
         render(); cur=0; checkAutoSkip(); update();
     }
 
-    const isLead0 = (val, isHighestDigit) => (val === 0 && isHighestDigit);
-
     function setup2x2() {
-        let min, max, l2_min = 0, l2_max = 9;
-        
-        if(currentLevel === 1) { // 2桁×1桁
-            min = 1; max = 9; l2_min = 0; l2_max = 0; // 十の位を強制0
-            n1 = Math.floor(Math.random() * 90) + 10;
-            n2 = Math.floor(Math.random() * 9) + 1;
-        } else if(currentLevel === 2) { // 旧Lv1: かんたん2x2
+        if(currentLevel === 1) {
+            n1 = Math.floor(Math.random() * 90) + 10; n2 = Math.floor(Math.random() * 9) + 1;
+        } else if(currentLevel === 2) {
             n1 = (Math.floor(Math.random()*4)+1)*10 + (Math.floor(Math.random()*5));
             n2 = (Math.floor(Math.random()*4)+1)*10 + (Math.floor(Math.random()*5));
-        } else if(currentLevel === 3) { // 旧Lv2: ふつう2x2
-            n1 = Math.floor(Math.random()*90)+10; n2 = Math.floor(Math.random()*90)+10;
-        } else { // 旧Lv3: むずい2x2
+        } else {
             n1 = Math.floor(Math.random()*90)+10; n2 = Math.floor(Math.random()*90)+10;
         }
-
         const d10=Math.floor(n2/10), d1=n2%10, p1=n1*d1, p2=n1*d10, total=n1*n2;
-        steps = [
-            {id:'p1_1', ans:p1%10, h:[3,8]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]}, 
-            {id:'p1_100', ans:Math.floor(p1/100)||0, h:[2,8], skip:isLead0(Math.floor(p1/100)||0, true)},
-            {id:'p2_10', ans:p2%10, h:[3,7]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]}, 
-            {id:'p2_1000', ans:Math.floor(p2/100)||0, h:[2,7], skip:isLead0(Math.floor(p2/100)||0, true)},
-            {id:'a1', ans:total%10, h:[13,18]}, {id:'a10', ans:Math.floor(total/10)%10, h:[12,17]}, {id:'a100', ans:Math.floor(total/100)%10, h:[11,16]}, 
-            {id:'a1000', ans:Math.floor(total/1000)||0, h:[10,15], skip:isLead0(Math.floor(total/1000)||0, true)}
-        ];
         
-        // Lv1(2x1)の場合、2行目（十の位との掛け算）は全て0なので自動スキップ対象にする
         if(currentLevel === 1) {
-            steps[3].skip = true; steps[4].skip = true; steps[5].skip = true;
+            steps = [
+                {id:'p1_1', ans:p1%10, h:[3,8]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]}, 
+                {id:'p1_100', ans:Math.floor(p1/100)||0, h:[2,8], skip:(Math.floor(p1/100)===0)}
+            ];
+        } else {
+            steps = [
+                {id:'p1_1', ans:p1%10, h:[3,8]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]}, 
+                {id:'p1_100', ans:Math.floor(p1/100)||0, h:[2,8], skip:(Math.floor(p1/100)===0)},
+                {id:'p2_10', ans:p2%10, h:[3,7]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]}, 
+                {id:'p2_1000', ans:Math.floor(p2/100)||0, h:[2,7], skip:(Math.floor(p2/100)===0)},
+                {id:'a1', ans:total%10, h:[13,18]}, {id:'a10', ans:Math.floor(total/10)%10, h:[12,17]}, {id:'a100', ans:Math.floor(total/100)%10, h:[11,16]}, 
+                {id:'a1000', ans:Math.floor(total/1000)||0, h:[10,15], skip:(Math.floor(total/1000)===0)}
+            ];
         }
     }
 
@@ -215,11 +188,11 @@
         const d10=Math.floor(n2/10), d1=n2%10, p1=n1*d1, p2=n1*d10, total=n1*n2;
         steps = [
             {id:'p1_1', ans:p1%10, h:[4,10]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[3,10]}, {id:'p1_100', ans:Math.floor(p1/100)%10, h:[2,10]}, 
-            {id:'p1_1000', ans:Math.floor(p1/1000)||0, h:[2,10], skip:isLead0(Math.floor(p1/1000)||0, true)},
+            {id:'p1_1000', ans:Math.floor(p1/1000)||0, h:[2,10], skip:(Math.floor(p1/1000)===0)},
             {id:'p2_10', ans:p2%10, h:[4,9]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[3,9]}, {id:'p2_1000', ans:Math.floor(p2/100)%10, h:[2,9]}, 
-            {id:'p2_10000', ans:Math.floor(p2/1000)||0, h:[2,9], skip:isLead0(Math.floor(p2/1000)||0, true)},
+            {id:'p2_10000', ans:Math.floor(p2/1000)||0, h:[2,9], skip:(Math.floor(p2/1000)===0)},
             {id:'a1', ans:total%10, h:[16,22]}, {id:'a10', ans:Math.floor(total/10)%10, h:[15,21]}, {id:'a100', ans:Math.floor(total/100)%10, h:[14,20]}, {id:'a1000', ans:Math.floor(total/1000)%10, h:[13,19]}, 
-            {id:'a10000', ans:Math.floor(total/10000)||0, h:[12,18], skip:isLead0(Math.floor(total/10000)||0, true)}
+            {id:'a10000', ans:Math.floor(total/10000)||0, h:[12,18], skip:(Math.floor(total/10000)===0)}
         ];
     }
 
@@ -235,11 +208,16 @@
                    `<div id="p2_10000" class="cell input"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell"></div>` +
                    `<div class="line w6"></div>` +
                    `<div id="a10000" class="cell input"></div><div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell"></div>`;
+        } else if (currentLevel === 1) {
+            const s1=String(n1).padStart(2,' ');
+            html = `<div class="cell"></div><div class="cell"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell"></div>` +
+                   `<div class="cell">×</div><div class="cell"></div><div class="cell"></div><div class="cell">${n2}</div><div class="cell"></div>` +
+                   `<div class="line w5"></div>` +
+                   `<div class="cell"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div>`;
         } else {
             const s1=String(n1).padStart(2,' '), s2=String(n2).padStart(2,' ');
-            const s2_10 = Math.floor(n2/10) === 0 ? " " : Math.floor(n2/10);
             html = `<div class="cell"></div><div class="cell"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell"></div>` +
-                   `<div class="cell">×</div><div class="cell"></div><div class="cell">${s2_10}</div><div class="cell">${n2%10}</div><div class="cell"></div>` +
+                   `<div class="cell">×</div><div class="cell"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell"></div>` +
                    `<div class="line w5"></div>` +
                    `<div class="cell"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div>` +
                    `<div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell"></div>` +
@@ -277,8 +255,7 @@
     function check() {
         const s = steps[cur], cell = document.getElementById(s.id);
         if(!cell) return;
-        const inputVal = cell.querySelector('.num-display').textContent;
-        if(inputVal !== "" && parseInt(inputVal) === s.ans) {
+        if(cell.querySelector('.num-display').textContent !== "" && parseInt(cell.querySelector('.num-display').textContent) === s.ans) {
             cell.classList.remove('input','active'); cell.style.color="blue";
             soundMagic.play(); cur++; checkAutoSkip();
             if(cur >= steps.length) gameClear(); else update();
@@ -286,22 +263,15 @@
     }
 
     function checkAutoSkip() {
-        while (cur < steps.length && (steps[cur].skip || (currentLevel === 1 && steps[cur].id.startsWith('p2_')))) {
+        while (cur < steps.length && steps[cur].skip) {
             const skipCell = document.getElementById(steps[cur].id);
-            if (skipCell) { 
-                skipCell.classList.remove('input','active'); 
-                if(currentLevel === 1 && steps[cur].id.startsWith('p2_')) {
-                    skipCell.querySelector('.num-display').textContent = "0";
-                }
-                skipCell.style.color = "blue"; 
-            }
+            if (skipCell) { skipCell.classList.remove('input','active'); skipCell.style.color = "blue"; }
             cur++;
         }
     }
 
     function gameClear() {
-        let earn = currentLevel; // 報酬をレベルと同じにする (1,2,3,4,5)
-        stats.totalGems += earn; stats[`lv${currentLevel}`].solve++;
+        let earn = currentLevel; stats.totalGems += earn; stats[`lv${currentLevel}`].solve++;
         save(); updateStats();
         document.getElementById('gemsDisplay').innerText = "💎".repeat(Math.min(earn, 7));
         document.getElementById('clearOverlay').style.display='flex';
