@@ -13,9 +13,9 @@
         body { font-family: var(--font-family); background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 95%; max-width: 500px; border: 5px solid var(--primary); position: relative; }
         
-        /* 修行記録（宝石の合計）の表示エリア */
-        .stats-area { font-size: 18px; color: #555; margin-bottom: 10px; display: flex; justify-content: center; gap: 10px; align-items: center; }
-        .total-gems { color: #fbc02d; font-weight: bold; font-size: 22px; }
+        .stats-area { font-size: 16px; color: #555; margin-bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .total-gems { color: #fbc02d; font-weight: bold; font-size: 20px; }
+        .title-display { color: #e91e63; font-size: 18px; font-weight: bold; background: #fff9f0; padding: 4px 15px; border-radius: 20px; border: 1px solid #ffe0b2; }
 
         .level-select { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
         .level-btn { border: none; padding: 8px 12px; border-radius: 12px; cursor: pointer; font-family: var(--font-family); background: #eee; transition: 0.3s; }
@@ -44,8 +44,8 @@
 
 <div class="container">
     <div class="stats-area">
-        <span>ぜんぶの宝石:</span>
-        <span class="total-gems">💎 <span id="totalGemsCount">0</span></span>
+        <div class="total-gems">💎 ぜんぶの宝石: <span id="totalGemsCount">0</span></div>
+        <div class="title-display">称号: <span id="currentTitle">かけだし</span></div>
     </div>
 
     <div class="level-select">
@@ -69,20 +69,41 @@
 </div>
 
 <script>
+    const titles = [
+        "魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士",
+        "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】",
+        "炎の術師", "水の魔導士", "風の旅人", "大地の守護者", "雷鳴の使い手",
+        "氷結の魔導師", "光の導き手", "闇を払う者", "精霊との契約者", "【エリート魔導師】",
+        "古代文字の解読者", "秘宝の探索者", "幻獣の友", "錬金術の達人", "時空の旅人",
+        "異世界の案内人", "魔力回路の天才", "伝説の語り部", "禁忌の魔法使い", "【大魔導師】",
+        "賢者の弟子", "真理の追究者", "浮遊島の主", "龍の騎士", "運命の操作者",
+        "神話の生き残り", "聖域の守護聖人", "宇宙の観測者", "多次元の覇者", "【大賢者】",
+        "神の代行者", "創造の魔法使い", "永遠を生きる者", "銀河の調停者", "魔法界の王",
+        "全知全能の萌芽", "神話の創造主", "次元を超えし存在", "魔法の根源", "【筆算の神】"
+    ];
+
     let level=1, n1, n2, steps=[], cur=0;
     let totalGems = parseInt(localStorage.getItem('mathGems')) || 0;
     
-    // 音源のセットアップ
-    const soundOk = new Audio('https://actions.google.com/sounds/v1/water/clink_glasses.ogg');
     const soundMagic = new Audio('https://actions.google.com/sounds/v1/cartoon/glissando.ogg');
     const soundClear = new Audio('https://actions.google.com/sounds/v1/cartoon/positive_musical_chip.ogg');
 
-    document.getElementById('totalGemsCount').innerText = totalGems;
+    function updateStats() {
+        document.getElementById('totalGemsCount').innerText = totalGems;
+        let titleIdx = Math.floor(totalGems / 10);
+        if (titleIdx >= titles.length) titleIdx = titles.length - 1;
+        if (totalGems < 10) {
+            document.getElementById('currentTitle').innerText = "かけだし";
+        } else {
+            document.getElementById('currentTitle').innerText = titles[titleIdx - 1];
+        }
+    }
 
     function setLevel(l) { level=l; document.querySelectorAll('.level-btn').forEach((b,i)=>b.classList.toggle('active',i+1===l)); initGame(); }
 
     function initGame() {
         document.getElementById('clearOverlay').style.display='none';
+        updateStats();
         n1 = Math.floor(Math.random()*80)+12;
         n2 = (level===1) ? Math.floor(Math.random()*5)+11 : Math.floor(Math.random()*80)+12;
         if(level===1) while((n1%10)*(n2%10)>=10) n1++;
@@ -140,7 +161,7 @@
         const active = document.getElementById(s.id);
         if(active && (active.innerText !== "") && parseInt(active.innerText)===s.ans) {
             active.classList.remove('input'); active.style.color="blue";
-            soundMagic.currentTime = 0; soundMagic.play(); // 魔法の音
+            soundMagic.currentTime = 0; soundMagic.play();
             cur++;
             if(cur>=steps.length) gameClear();
             else update();
@@ -154,10 +175,9 @@
     function gameClear() {
         const earnGems = level===1 ? 1 : level===2 ? 3 : 5;
         totalGems += earnGems;
-        localStorage.setItem('mathGems', totalGems); // 記録をブラウザに保存
-        document.getElementById('totalGemsCount').innerText = totalGems;
-        
-        soundClear.play(); // クリア音
+        localStorage.setItem('mathGems', totalGems);
+        updateStats();
+        soundClear.play();
         document.getElementById('gems').innerText = "💎".repeat(earnGems);
         document.getElementById('clearOverlay').style.display='flex';
     }
