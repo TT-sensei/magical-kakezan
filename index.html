@@ -6,59 +6,43 @@
     <title>魔法の筆算道場</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap');
-
         :root {
             --primary: #4CAF50; --secondary: #FFC107; --accent: #2196F3;
-            --bg: #e0f7fa; --font-family: 'Mochiy Pop P One', cursive;
+            --bg: #f0f4f8; --font-family: 'Mochiy Pop P One', cursive;
         }
+        body { font-family: var(--font-family); background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 95%; max-width: 500px; border: 5px solid var(--primary); position: relative; }
+        
+        .level-select { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
+        .level-btn { border: none; padding: 8px 12px; border-radius: 12px; cursor: pointer; font-family: var(--font-family); background: #eee; transition: 0.3s; }
+        .level-btn.active { background: var(--secondary); transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 
-        body {
-            font-family: var(--font-family); background: var(--bg);
-            display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0;
-        }
-
-        .container {
-            background: white; border-radius: 20px; padding: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 500px;
-            border: 4px solid var(--primary); position: relative;
-        }
-
-        .level-select { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        .level-btn {
-            border: none; padding: 10px 15px; border-radius: 15px; cursor: pointer;
-            font-family: var(--font-family); transition: 0.3s; background: #eee;
-        }
-        .level-btn.active { background: var(--secondary); transform: scale(1.1); }
-
-        .piko-area { height: 40px; color: var(--primary); font-weight: bold; margin-bottom: 10px; }
-
-        /* 筆算ボードのスタイル */
+        /* 筆算ボードのレイアウト修正 */
         .board {
-            display: inline-grid; grid-template-columns: repeat(5, 45px); gap: 5px;
-            background: #f9f9f9; padding: 20px; border-radius: 10px; border: 2px solid #ccc;
+            display: inline-grid; grid-template-columns: repeat(5, 50px); gap: 2px;
+            background: #fff; padding: 20px; border-radius: 15px; border: 3px solid #ddd;
+            margin-bottom: 20px;
         }
-        .cell {
-            width: 45px; height: 45px; display: flex; justify-content: center; align-items: center;
-            font-size: 24px; border: 1px solid #ddd; background: white; border-radius: 5px;
+        .cell { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-size: 28px; position: relative; border-radius: 5px; }
+        
+        /* 数字が光るアニメーション */
+        .cell.highlight { 
+            background: #fff59d; border: 3px solid var(--secondary); 
+            animation: pulse 1s infinite alternate; z-index: 2;
         }
-        .cell.input { background: #fff9c4; border: 2px solid var(--accent); cursor: pointer; }
-        .cell.active { border: 3px solid #ff5722; box-shadow: 0 0 10px rgba(255,87,34,0.5); }
-        .cell.op { border: none; background: none; color: var(--accent); }
-        .line { grid-column: 1 / 6; height: 3px; background: #333; margin: 5px 0; }
+        @keyframes pulse { from { transform: scale(1); box-shadow: 0 0 5px var(--secondary); } to { transform: scale(1.1); box-shadow: 0 0 15px var(--secondary); } }
 
-        .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 20px; }
-        .key {
-            padding: 15px; font-size: 20px; border: none; border-radius: 10px;
-            background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family);
-        }
-        .key:active { transform: scale(0.95); }
+        .cell.input { background: #e3f2fd; border: 2px dashed var(--accent); cursor: pointer; }
+        .cell.active { border: 3px solid #ff5722; background: #fff; box-shadow: 0 0 10px rgba(255,87,34,0.5); }
+        .cell.op { color: #888; font-size: 24px; }
+        .line { grid-column: 1 / 6; height: 4px; background: #444; margin: 4px 0; border-radius: 2px; }
+
+        .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .key { padding: 15px; font-size: 24px; border: none; border-radius: 12px; background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); }
         .key.del { background: #f44336; }
+        .key.enter { background: var(--primary); grid-column: span 3; }
 
-        .overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); display: none; flex-direction: column;
-            justify-content: center; align-items: center; border-radius: 20px; z-index: 10;
-        }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 15px; z-index: 100; }
     </style>
 </head>
 <body>
@@ -69,139 +53,98 @@
         <button class="level-btn" onclick="setLevel(2)">魔導師</button>
         <button class="level-btn" onclick="setLevel(3)">大賢者</button>
     </div>
-
-    <div class="piko-area" id="piko">修行を はじめよう！</div>
-
+    <div id="piko" style="height:30px; margin-bottom:10px; color:var(--primary);">修行開始！</div>
     <div class="board" id="board"></div>
-
     <div class="keyboard">
-        <button class="key" onclick="inputNum(1)">1</button>
-        <button class="key" onclick="inputNum(2)">2</button>
-        <button class="key" onclick="inputNum(3)">3</button>
-        <button class="key" onclick="inputNum(4)">4</button>
-        <button class="key" onclick="inputNum(5)">5</button>
-        <button class="key" onclick="inputNum(6)">6</button>
-        <button class="key" onclick="inputNum(7)">7</button>
-        <button class="key" onclick="inputNum(8)">8</button>
-        <button class="key" onclick="inputNum(9)">9</button>
-        <button class="key del" onclick="inputNum('del')">↩</button>
-        <button class="key" onclick="inputNum(0)">0</button>
-        <button class="key" onclick="checkAnswer()">決定</button>
+        <button class="key" onclick="input(1)">1</button><button class="key" onclick="input(2)">2</button><button class="key" onclick="input(3)">3</button>
+        <button class="key" onclick="input(4)">4</button><button class="key" onclick="input(5)">5</button><button class="key" onclick="input(6)">6</button>
+        <button class="key" onclick="input(7)">7</button><button class="key" onclick="input(8)">8</button><button class="key" onclick="input(9)">9</button>
+        <button class="key del" onclick="input('del')">↩</button><button class="key" onclick="input(0)">0</button><button class="key" onclick="check()">OK!</button>
     </div>
-
     <div class="overlay" id="clearOverlay">
-        <h2 style="color:var(--secondary); font-size: 40px;">クリア！💎</h2>
-        <div id="gems" style="font-size: 50px; margin-bottom: 20px;"></div>
-        <button class="key" style="background:var(--primary)" onclick="initGame()">もういちど！</button>
+        <h2 style="font-size:40px;">合格！💎</h2>
+        <div id="gems" style="font-size:60px;"></div>
+        <button class="key" onclick="initGame()">次へ</button>
     </div>
 </div>
 
 <script>
-    let level = 1;
-    let n1, n2, steps = [], currentStep = 0;
-
-    // 効果音 (フリー音源)
+    let level=1, n1, n2, steps=[], cur=0;
     const soundOk = new Audio('https://actions.google.com/sounds/v1/water/clink_glasses.ogg');
-    const soundClear = new Audio('https://actions.google.com/sounds/v1/cartoon/clown_horn.ogg');
 
-    function setLevel(l) {
-        level = l;
-        document.querySelectorAll('.level-btn').forEach((b, i) => b.classList.toggle('active', i+1 === l));
-        document.getElementById('piko').innerText = "新しい修行を はじめるよ！";
-        setTimeout(initGame, 800);
-    }
+    function setLevel(l) { level=l; document.querySelectorAll('.level-btn').forEach((b,i)=>b.classList.toggle('active',i+1===l)); initGame(); }
 
     function initGame() {
-        document.getElementById('clearOverlay').style.display = 'none';
-        generateProblem();
-        renderBoard();
-        currentStep = 0;
-        updateActiveCell();
-    }
+        document.getElementById('clearOverlay').style.display='none';
+        n1 = Math.floor(Math.random()*80)+12;
+        n2 = (level===1) ? Math.floor(Math.random()*5)+11 : Math.floor(Math.random()*80)+12;
+        if(level===1) while((n1%10)*(n2%10)>=10) n1++;
+        
+        const d1=Math.floor(n1/10), d2=n1%10, d3=Math.floor(n2/10), d4=n2%10;
+        const p1=n1*d4, p2=n1*d3, total=n1*n2;
 
-    function generateProblem() {
-        if (level === 1) { // 繰り上がりなし
-            n1 = Math.floor(Math.random() * 30) + 11;
-            n2 = Math.floor(Math.random() * 3) + 11;
-            while ((n1%10)*(n2%10) >= 10) n1 = Math.floor(Math.random() * 30) + 11;
-        } else if (level === 2) { // どっか繰り上がる
-            n1 = Math.floor(Math.random() * 80) + 15;
-            n2 = Math.floor(Math.random() * 8) + 12;
-        } else { // 激ムズ
-            n1 = Math.floor(Math.random() * 80) + 20;
-            n2 = Math.floor(Math.random() * 80) + 20;
-        }
-
-        const p1 = n1 * (n2 % 10);
-        const p2 = n1 * Math.floor(n2 / 10);
-        const total = n1 * n2;
-
-        // ステップごとの正解を配列に
         steps = [
-            { id: 'p1_1', ans: p1 % 10 },
-            { id: 'p1_10', ans: Math.floor(p1 / 10) % 10 },
-            { id: 'p1_100', ans: Math.floor(p1 / 100) || 0 },
-            { id: 'p2_10', ans: p2 % 10 },
-            { id: 'p2_100', ans: Math.floor(p2 / 10) % 10 },
-            { id: 'p2_1000', ans: Math.floor(p2 / 100) || 0 },
-            { id: 'ans_1', ans: total % 10 },
-            { id: 'ans_10', ans: Math.floor(total / 10) % 10 },
-            { id: 'ans_100', ans: Math.floor(total / 100) % 10 },
-            { id: 'ans_1000', ans: Math.floor(total / 1000) || 0 }
+            {id:'p1_1', ans:p1%10, h:[3,8]},       // n1一の位 × n2一の位
+            {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]}, // n1十の位 × n2一の位
+            {id:'p1_100', ans:Math.floor(p1/100)||0, h:[2,8]},
+            {id:'p2_10', ans:p2%10, h:[3,7]},      // n1一の位 × n2十の位
+            {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]}, // n1十の位 × n2十の位
+            {id:'p2_1000', ans:Math.floor(p2/100)||0, h:[2,7]},
+            {id:'a1', ans:total%10, h:[13,18]},    // 足し算
+            {id:'a10', ans:Math.floor(total/10)%10, h:[12,17]},
+            {id:'a100', ans:Math.floor(total/100)%10, h:[11,16]},
+            {id:'a1000', ans:Math.floor(total/1000)||0, h:[10,15]}
         ];
+        render();
+        cur=0; update();
     }
 
-    function renderBoard() {
-        const board = document.getElementById('board');
-        const s1 = String(n1).padStart(2, ' ');
-        const s2 = String(n2).padStart(2, ' ');
-
-        board.innerHTML = `
-            <div class="cell op"></div><div class="cell op"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell op"></div>
-            <div class="cell op">×</div><div class="cell op"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell op"></div>
+    function render() {
+        const b = document.getElementById('board');
+        const s1=String(n1).padStart(2,' '), s2=String(n2).padStart(2,' ');
+        b.innerHTML = `
+            <div class="cell op"></div><div class="cell op"></div><div class="cell" id="idx_2">${s1[0]}</div><div class="cell" id="idx_3">${s1[1]}</div><div class="cell op"></div>
+            <div class="cell op">×</div><div class="cell op"></div><div class="cell" id="idx_7">${s2[0]}</div><div class="cell" id="idx_8">${s2[1]}</div><div class="cell op"></div>
             <div class="line"></div>
-            <div class="cell op"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell op"></div>
-            <div class="cell op"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell">0</div>
+            <div class="cell op"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input" id="idx_13"></div><div class="cell op"></div>
+            <div class="cell op"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input" id="idx_18"></div><div class="cell" style="color:#ccc">0</div>
             <div class="line"></div>
-            <div id="ans_1000" class="cell input"></div><div id="ans_100" class="cell input"></div><div id="ans_10" class="cell input"></div><div id="ans_1" class="cell input"></div><div class="cell op"></div>
+            <div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>
         `;
     }
 
-    function updateActiveCell() {
-        document.querySelectorAll('.cell.input').forEach(c => c.classList.remove('active'));
-        const active = document.getElementById(steps[currentStep].id);
-        if (active) active.classList.add('active');
+    function update() {
+        document.querySelectorAll('.cell').forEach(c=>c.classList.remove('active','highlight'));
+        const s = steps[cur];
+        const active = document.getElementById(s.id);
+        if(active) active.classList.add('active');
+        s.h.forEach(idx => {
+            const target = document.querySelectorAll('.cell')[idx];
+            if(target) target.classList.add('highlight');
+        });
     }
 
-    function inputNum(n) {
-        const active = document.getElementById(steps[currentStep].id);
-        if (n === 'del') active.innerText = "";
-        else active.innerText = n;
+    function input(v) {
+        const active = document.getElementById(steps[cur].id);
+        if(v==='del') active.innerText = "";
+        else active.innerText = v;
     }
 
-    function checkAnswer() {
-        const active = document.getElementById(steps[currentStep].id);
-        if (parseInt(active.innerText) === steps[currentStep].ans) {
-            active.style.color = "blue";
-            active.classList.remove('input');
-            soundOk.play();
-            currentStep++;
-            if (currentStep >= steps.length) gameClear();
-            else updateActiveCell();
+    function check() {
+        const s = steps[cur];
+        const active = document.getElementById(s.id);
+        if(parseInt(active.innerText)===s.ans) {
+            active.classList.remove('input'); active.style.color="blue";
+            soundOk.play(); cur++;
+            if(cur>=steps.length) {
+                document.getElementById('gems').innerText = "💎".repeat(level===1?1:level===2?3:5);
+                document.getElementById('clearOverlay').style.display='flex';
+            } else update();
         } else {
-            active.innerText = "";
-            document.getElementById('piko').innerText = "おっと！魔法が しっぱいだ。";
-            setTimeout(() => document.getElementById('piko').innerText = "修行を つづけよう！", 1000);
+            active.innerText=""; document.getElementById('piko').innerText="ちがうよ！もういちど！";
+            setTimeout(()=>document.getElementById('piko').innerText="修行中...", 1000);
         }
     }
-
-    function gameClear() {
-        soundClear.play();
-        const gemCount = level === 1 ? 1 : level === 2 ? 3 : 5;
-        document.getElementById('gems').innerText = "💎".repeat(gemCount);
-        document.getElementById('clearOverlay').style.display = 'flex';
-    }
-
     initGame();
 </script>
 </body>
