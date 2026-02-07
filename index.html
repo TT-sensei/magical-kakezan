@@ -1,187 +1,311 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>魔法の筆算道場</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap');
-        :root {
-            --primary: #4CAF50; --secondary: #FFC107; --accent: #2196F3;
-            --bg: #f0f4f8; --font-family: 'Mochiy Pop P One', cursive;
-        }
-        body { font-family: var(--font-family); background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 95%; max-width: 500px; border: 5px solid var(--primary); position: relative; }
-        
-        .stats-area { font-size: 16px; color: #555; margin-bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .total-gems { color: #fbc02d; font-weight: bold; font-size: 20px; }
-        .title-display { color: #e91e63; font-size: 18px; font-weight: bold; background: #fff9f0; padding: 4px 15px; border-radius: 20px; border: 1px solid #ffe0b2; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>魔法の筆算道場</title>
 
-        .level-select { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
-        .level-btn { border: none; padding: 8px 12px; border-radius: 12px; cursor: pointer; font-family: var(--font-family); background: #eee; transition: 0.3s; }
-        .level-btn.active { background: var(--secondary); transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap');
 
-        .board { display: inline-grid; grid-template-columns: repeat(5, 50px); gap: 2px; background: #fff; padding: 20px; border-radius: 15px; border: 3px solid #ddd; margin-bottom: 20px; }
-        .cell { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-size: 28px; position: relative; border-radius: 5px; }
-        
-        .cell.highlight { background: #fff59d; border: 3px solid var(--secondary); animation: pulse 1s infinite alternate; z-index: 2; }
-        @keyframes pulse { from { transform: scale(1); box-shadow: 0 0 5px var(--secondary); } to { transform: scale(1.1); box-shadow: 0 0 15px var(--secondary); } }
+:root{
+  --primary:#4CAF50;
+  --secondary:#FFC107;
+  --accent:#2196F3;
+  --bg:#f0f4f8;
+  --font:'Mochiy Pop P One','Hiragino Maru Gothic ProN','Rounded Mplus 1c',sans-serif;
+}
 
-        .cell.input { background: #e3f2fd; border: 2px dashed var(--accent); cursor: pointer; }
-        .cell.active { border: 3px solid #ff5722; background: #fff; box-shadow: 0 0 10px rgba(255,87,34,0.5); }
-        .cell.op { color: #888; font-size: 24px; }
-        .line { grid-column: 1 / 6; height: 4px; background: #444; margin: 4px 0; border-radius: 2px; }
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:var(--bg);
+  font-family:var(--font);
+}
 
-        .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .key { padding: 15px; font-size: 24px; border: none; border-radius: 12px; background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); }
-        .key.del { background: #f44336; }
-        .key.enter { background: var(--primary); grid-column: span 3; }
+.container{
+  position:relative;
+  background:#fff;
+  border-radius:20px;
+  padding:25px;
+  width:95%;
+  max-width:500px;
+  border:5px solid var(--primary);
+  text-align:center;
+}
 
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 15px; z-index: 100; }
-    </style>
+.stats-area{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.total-gems{font-size:20px;color:#fbc02d;}
+.title-display{
+  background:#fff9f0;
+  border-radius:20px;
+  padding:4px 15px;
+  color:#e91e63;
+}
+
+.level-select{margin:10px 0;}
+.level-btn{
+  border:none;
+  padding:8px 12px;
+  border-radius:12px;
+  font-family:var(--font);
+}
+.level-btn.active{background:var(--secondary);}
+
+.board{
+  display:grid;
+  grid-template-columns:repeat(5,50px);
+  gap:2px;
+  padding:15px;
+  border-radius:15px;
+  border:3px solid #ddd;
+  margin:10px auto;
+}
+
+.cell{
+  width:50px;height:50px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:28px;
+  border-radius:6px;
+}
+
+.cell.input{background:#e3f2fd;border:2px dashed var(--accent);}
+.cell.active{border:3px solid #ff5722;}
+.cell.op{color:#999;}
+.line{grid-column:1/6;height:4px;background:#444;}
+
+.cell.highlight{
+  background:#fff59d;
+  animation:pulse 0.6s alternate infinite;
+}
+@keyframes pulse{
+  from{box-shadow:0 0 5px gold;}
+  to{box-shadow:0 0 15px gold;}
+}
+
+.keyboard{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.key{
+  padding:15px;
+  font-size:22px;
+  border:none;
+  border-radius:12px;
+  background:var(--accent);
+  color:#fff;
+  font-family:var(--font);
+}
+.key.del{background:#f44336;}
+.key.enter{grid-column:span 3;background:var(--primary);}
+
+#combo{
+  height:28px;
+  color:#ff5722;
+  font-size:20px;
+}
+
+.hint-btn{
+  margin-bottom:6px;
+  background:#ff9800;
+  color:#fff;
+  border:none;
+  padding:6px 14px;
+  border-radius:20px;
+  font-family:var(--font);
+}
+
+.overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(255,255,255,0.95);
+  display:none;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  border-radius:20px;
+}
+
+.confetti{
+  position:absolute;
+  font-size:24px;
+  animation:fall 1.5s linear forwards;
+}
+@keyframes fall{
+  to{transform:translateY(300px) rotate(360deg);opacity:0;}
+}
+</style>
 </head>
+
 <body>
-
 <div class="container">
-    <div class="stats-area">
-        <div class="total-gems">💎 ぜんぶの宝石: <span id="totalGemsCount">0</span></div>
-        <div class="title-display">称号: <span id="currentTitle">かけだし</span></div>
-    </div>
 
-    <div class="level-select">
-        <button class="level-btn active" onclick="setLevel(1)">見習い</button>
-        <button class="level-btn" onclick="setLevel(2)">魔導師</button>
-        <button class="level-btn" onclick="setLevel(3)">大賢者</button>
-    </div>
-    <div id="piko" style="height:30px; margin-bottom:10px; color:var(--primary);">修行開始！</div>
-    <div class="board" id="board"></div>
-    <div class="keyboard">
-        <button class="key" onclick="input(1)">1</button><button class="key" onclick="input(2)">2</button><button class="key" onclick="input(3)">3</button>
-        <button class="key" onclick="input(4)">4</button><button class="key" onclick="input(5)">5</button><button class="key" onclick="input(6)">6</button>
-        <button class="key" onclick="input(7)">7</button><button class="key" onclick="input(8)">8</button><button class="key" onclick="input(9)">9</button>
-        <button class="key del" onclick="input('del')">↩</button><button class="key" onclick="input(0)">0</button><button class="key" onclick="check()">OK!</button>
-    </div>
-    <div class="overlay" id="clearOverlay">
-        <h2 style="font-size:40px;">合格！💎</h2>
-        <div id="gems" style="font-size:60px;"></div>
-        <button class="key" onclick="initGame()">次へ</button>
-    </div>
+<div class="stats-area">
+  <div class="total-gems">💎 <span id="totalGemsCount">0</span></div>
+  <div class="title-display">称号: <span id="currentTitle">かけだし</span></div>
+</div>
+
+<div class="level-select">
+  <button class="level-btn active" onclick="setLevel(1)">見習い</button>
+  <button class="level-btn" onclick="setLevel(2)">魔導師</button>
+  <button class="level-btn" onclick="setLevel(3)">大賢者</button>
+</div>
+
+<button class="hint-btn" onclick="showHint()">ヒント✨</button>
+<div id="combo"></div>
+
+<div class="board" id="board"></div>
+
+<div class="keyboard">
+  <button class="key" onclick="inputNum(1)">1</button>
+  <button class="key" onclick="inputNum(2)">2</button>
+  <button class="key" onclick="inputNum(3)">3</button>
+  <button class="key" onclick="inputNum(4)">4</button>
+  <button class="key" onclick="inputNum(5)">5</button>
+  <button class="key" onclick="inputNum(6)">6</button>
+  <button class="key" onclick="inputNum(7)">7</button>
+  <button class="key" onclick="inputNum(8)">8</button>
+  <button class="key" onclick="inputNum(9)">9</button>
+  <button class="key del" onclick="inputNum('del')">↩</button>
+  <button class="key" onclick="inputNum(0)">0</button>
+  <button class="key enter" onclick="check()">OK!</button>
+</div>
+
+<div class="overlay" id="clearOverlay">
+  <h2 style="font-size:40px;">合格！</h2>
+  <div id="gems" style="font-size:60px;"></div>
+  <button class="key" onclick="initGame()">つづける</button>
+</div>
+
 </div>
 
 <script>
-    const titles = [
-        "魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士",
-        "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】",
-        "炎の術師", "水の魔導士", "風の旅人", "大地の守護者", "雷鳴の使い手",
-        "氷結の魔導師", "光の導き手", "闇を払う者", "精霊との契約者", "【エリート魔導師】",
-        "古代文字の解読者", "秘宝の探索者", "幻獣の友", "錬金術の達人", "時空の旅人",
-        "異世界の案内人", "魔力回路の天才", "伝説の語り部", "禁忌の魔法使い", "【大魔導師】",
-        "賢者の弟子", "真理の追究者", "浮遊島の主", "龍の騎士", "運命の操作者",
-        "神話の生き残り", "聖域の守護聖人", "宇宙の観測者", "多次元の覇者", "【大賢者】",
-        "神の代行者", "創造の魔法使い", "永遠を生きる者", "銀河の調停者", "魔法界の王",
-        "全知全能の萌芽", "神話の創造主", "次元を超えし存在", "魔法の根源", "【筆算の神】"
-    ];
+const titles=["かけだし","見習い魔法使い","魔法の筆使い","大魔導師","筆算の神"];
+let level=1,n1,n2,steps=[],cur=0,combo=0;
+let totalGems=+localStorage.getItem("mathGems")||0;
+let soundOK=false;
 
-    let level=1, n1, n2, steps=[], cur=0;
-    let totalGems = parseInt(localStorage.getItem('mathGems')) || 0;
-    
-    const soundMagic = new Audio('https://actions.google.com/sounds/v1/cartoon/glissando.ogg');
-    const soundClear = new Audio('https://actions.google.com/sounds/v1/cartoon/positive_musical_chip.ogg');
+const magic=new Audio("https://actions.google.com/sounds/v1/cartoon/glissando.ogg");
+const clearSound=new Audio("https://actions.google.com/sounds/v1/cartoon/positive_musical_chip.ogg");
 
-    function updateStats() {
-        document.getElementById('totalGemsCount').innerText = totalGems;
-        let titleIdx = Math.floor(totalGems / 10);
-        if (titleIdx >= titles.length) titleIdx = titles.length - 1;
-        if (totalGems < 10) {
-            document.getElementById('currentTitle').innerText = "かけだし";
-        } else {
-            document.getElementById('currentTitle').innerText = titles[titleIdx - 1];
-        }
-    }
+function updateStats(){
+  totalGemsCount.textContent=totalGems;
+  currentTitle.textContent=titles[Math.min(Math.floor(totalGems/10),titles.length-1)];
+}
 
-    function setLevel(l) { level=l; document.querySelectorAll('.level-btn').forEach((b,i)=>b.classList.toggle('active',i+1===l)); initGame(); }
+function setLevel(l){
+  level=l;
+  document.querySelectorAll(".level-btn").forEach((b,i)=>b.classList.toggle("active",i+1===l));
+  initGame();
+}
 
-    function initGame() {
-        document.getElementById('clearOverlay').style.display='none';
-        updateStats();
-        n1 = Math.floor(Math.random()*80)+12;
-        n2 = (level===1) ? Math.floor(Math.random()*5)+11 : Math.floor(Math.random()*80)+12;
-        if(level===1) while((n1%10)*(n2%10)>=10) n1++;
-        
-        const d1=Math.floor(n1/10), d2=n1%10, d3=Math.floor(n2/10), d4=n2%10;
-        const p1=n1*d4, p2=n1*d3, total=n1*n2;
+function initGame(){
+  clearOverlay.style.display="none";
+  combo=0; combo.textContent="";
+  updateStats();
 
-        steps = [
-            {id:'p1_1', ans:p1%10, h:[3,8]},
-            {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]},
-            {id:'p1_100', ans:Math.floor(p1/100)||0, h:[2,8]},
-            {id:'p2_10', ans:p2%10, h:[3,7]},
-            {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]},
-            {id:'p2_1000', ans:Math.floor(p2/100)||0, h:[2,7]},
-            {id:'a1', ans:total%10, h:[13,18]},
-            {id:'a10', ans:Math.floor(total/10)%10, h:[12,17]},
-            {id:'a100', ans:Math.floor(total/100)%10, h:[11,16]},
-            {id:'a1000', ans:Math.floor(total/1000)||0, h:[10,15]}
-        ];
-        render(); cur=0; update();
-    }
+  if(level===1){
+    do{
+      n1=Math.floor(Math.random()*80)+12;
+      n2=Math.floor(Math.random()*5)+11;
+    }while((n1%10)*(n2%10)>=10);
+  }else{
+    n1=Math.floor(Math.random()*80)+12;
+    n2=Math.floor(Math.random()*80)+12;
+  }
 
-    function render() {
-        const b = document.getElementById('board');
-        const s1=String(n1).padStart(2,' '), s2=String(n2).padStart(2,' ');
-        b.innerHTML = `
-            <div class="cell op"></div><div class="cell op"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell op"></div>
-            <div class="cell op">×</div><div class="cell op"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell op"></div>
-            <div class="line"></div>
-            <div class="cell op"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell op"></div>
-            <div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell op"></div>
-            <div class="line"></div>
-            <div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>
-        `;
-    }
+  const p1=n1*(n2%10);
+  const p2=n1*Math.floor(n2/10);
+  const t=n1*n2;
 
-    function update() {
-        const cells = document.querySelectorAll('.cell');
-        cells.forEach(c=>c.classList.remove('active','highlight'));
-        const s = steps[cur];
-        const active = document.getElementById(s.id);
-        if(active) active.classList.add('active');
-        s.h.forEach(idx => { if(cells[idx]) cells[idx].classList.add('highlight'); });
-    }
+  steps=[
+    {id:"p1",a:p1%10},{id:"p2",a:Math.floor(p1/10)%10},
+    {id:"p3",a:p2%10},{id:"p4",a:Math.floor(p2/10)%10},
+    {id:"a1",a:t%10},{id:"a2",a:Math.floor(t/10)%10}
+  ];
 
-    function input(v) {
-        const active = document.getElementById(steps[cur].id);
-        if(!active) return;
-        if(v==='del') active.innerText = "";
-        else active.innerText = v;
-    }
+  board.innerHTML=`
+  <div></div><div>${Math.floor(n1/10)}</div><div>${n1%10}</div>
+  <div>×</div><div>${Math.floor(n2/10)}</div><div>${n2%10}</div>
+  <div class="line"></div>
+  <div id="p2" class="cell input"></div><div id="p1" class="cell input"></div>
+  <div class="line"></div>
+  <div id="a2" class="cell input"></div><div id="a1" class="cell input"></div>
+  `;
+  cur=0; highlight();
+}
 
-    function check() {
-        const s = steps[cur];
-        const active = document.getElementById(s.id);
-        if(active && (active.innerText !== "") && parseInt(active.innerText)===s.ans) {
-            active.classList.remove('input'); active.style.color="blue";
-            soundMagic.currentTime = 0; soundMagic.play();
-            cur++;
-            if(cur>=steps.length) gameClear();
-            else update();
-        } else {
-            if(active) active.innerText=""; 
-            document.getElementById('piko').innerText="ちがうよ！もういちど！";
-            setTimeout(()=>document.getElementById('piko').innerText="修行中...", 1000);
-        }
-    }
+function highlight(){
+  document.querySelectorAll(".cell").forEach(c=>c.classList.remove("active","highlight"));
+  const c=document.getElementById(steps[cur].id);
+  if(c)c.classList.add("active","highlight");
+}
 
-    function gameClear() {
-        const earnGems = level===1 ? 1 : level===2 ? 3 : 5;
-        totalGems += earnGems;
-        localStorage.setItem('mathGems', totalGems);
-        updateStats();
-        soundClear.play();
-        document.getElementById('gems').innerText = "💎".repeat(earnGems);
-        document.getElementById('clearOverlay').style.display='flex';
-    }
-    initGame();
+function showHint(){
+  const c=document.getElementById(steps[cur].id);
+  if(!c)return;
+  c.classList.add("highlight");
+  setTimeout(()=>c.classList.remove("highlight"),800);
+}
+
+function inputNum(v){
+  if(!soundOK){magic.play().catch(()=>{});soundOK=true;}
+  const c=document.getElementById(steps[cur].id);
+  if(v==="del")c.textContent="";
+  else c.textContent=v;
+}
+
+function check(){
+  const s=steps[cur];
+  const c=document.getElementById(s.id);
+  if(+c.textContent===s.a){
+    magic.play();
+    combo++;
+    if(combo>=3)combo.textContent=`${combo} コンボ！🔥`;
+    cur++;
+    if(cur>=steps.length)clearGame();
+    else highlight();
+  }else{
+    combo=0; combo.textContent="";
+    c.textContent="";
+  }
+}
+
+function clearGame(){
+  clearSound.play();
+  totalGems+=level;
+  localStorage.setItem("mathGems",totalGems);
+  updateStats();
+  gems.textContent="💎".repeat(level);
+  clearOverlay.style.display="flex";
+  confetti();
+}
+
+function confetti(){
+  for(let i=0;i<20;i++){
+    const d=document.createElement("div");
+    d.className="confetti";
+    d.textContent="🎉";
+    d.style.left=Math.random()*100+"%";
+    d.style.top="-20px";
+    document.body.appendChild(d);
+    setTimeout(()=>d.remove(),1500);
+  }
+}
+
+initGame();
 </script>
 </body>
 </html>
