@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>魔法の筆算道場 - 究極奥義</title>
+    <title>魔法の筆算道場 - 究極奥義(安定版)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap');
         :root {
@@ -22,7 +22,6 @@
             color: #333;
         }
 
-        /* 魔法のタイトル演出 */
         @keyframes float { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-10px) rotate(2deg); } 100% { transform: translateY(0px) rotate(0deg); } }
         @keyframes shine { 0% { text-shadow: 0 0 5px #fff; } 50% { text-shadow: 0 0 20px #FFC107; } 100% { text-shadow: 0 0 5px #fff; } }
 
@@ -33,7 +32,6 @@
             position: relative; backdrop-filter: blur(10px);
         }
 
-        /* スタート画面をゲーム風に */
         .menu-overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background: radial-gradient(circle, #2563eb, #1e3a8a); 
@@ -59,7 +57,6 @@
         .level-card p { margin: 0; font-size: 11px; opacity: 0.8; }
         .card-gem { font-size: 20px; color: #FFC107; }
 
-        /* レベル別カラー */
         .card-lv1 { border-left: 8px solid #8bc34a; }
         .card-lv2 { border-left: 8px solid #ff9800; }
         .card-lv3 { border-left: 8px solid #f44336; }
@@ -94,23 +91,10 @@
 <div class="container">
     <div id="levelMenu" class="menu-overlay">
         <div class="game-title">🪄 魔法の筆算道場<br><span style="font-size:18px; color:white;">〜 伝説の魔導師への道 〜</span></div>
-        
-        <div class="level-card card-lv1" onclick="startLevel(1)">
-            <div><h3>修行：初級</h3><p>2×2桁：1〜4のやさしい呪文</p></div>
-            <div class="card-gem">💎1</div>
-        </div>
-        <div class="level-card card-lv2" onclick="startLevel(2)">
-            <div><h3>修行：中級</h3><p>2×2桁：1〜9の標準的な呪文</p></div>
-            <div class="card-gem">💎3</div>
-        </div>
-        <div class="level-card card-lv3" onclick="startLevel(3)">
-            <div><h3>修行：上級</h3><p>2×2桁：0を含むトリッキーな呪文</p></div>
-            <div class="card-gem">💎5</div>
-        </div>
-        <div class="level-card card-lv4" onclick="startLevel(4)">
-            <div><h3>伝説の試練</h3><p>3×2桁：選ばれし者のみが挑める奥義</p></div>
-            <div class="card-gem">💎7</div>
-        </div>
+        <div class="level-card card-lv1" onclick="startLevel(1)"><div><h3>修行：初級</h3><p>2×2桁：1〜4のやさしい呪文</p></div><div class="card-gem">💎1</div></div>
+        <div class="level-card card-lv2" onclick="startLevel(2)"><div><h3>修行：中級</h3><p>2×2桁：1〜9の標準的な呪文</p></div><div class="card-gem">💎3</div></div>
+        <div class="level-card card-lv3" onclick="startLevel(3)"><div><h3>修行：上級</h3><p>2×2桁：0を含むトリッキーな呪文</p></div><div class="card-gem">💎5</div></div>
+        <div class="level-card card-lv4" onclick="startLevel(4)"><div><h3>伝説の試練</h3><p>3×2桁：選ばれし者のみが挑める奥義</p></div><div class="card-gem">💎7</div></div>
     </div>
 
     <div class="stats-area">
@@ -118,7 +102,7 @@
         <div id="title-box" class="title-display">称号：<span id="currentTitle">かけだし</span></div>
     </div>
     
-    <div class="board col5" id="board"></div>
+    <div class="board" id="board"></div>
 
     <div class="keyboard">
         <button class="key" onclick="numInput(1)">1</button><button class="key" onclick="numInput(2)">2</button><button class="key" onclick="numInput(3)">3</button>
@@ -150,7 +134,8 @@
 
     function initGame() {
         document.getElementById('clearOverlay').style.display='none';
-        let b = document.getElementById('board');
+        const b = document.getElementById('board');
+        b.innerHTML = ""; // クリア
         if (currentLevel === 4) { b.className = "board col6"; setup3x2(); }
         else { b.className = "board col5"; setup2x2(); }
         render(); cur=0; checkAutoSkip(); update();
@@ -175,7 +160,7 @@
         const d1=Math.floor(n2/10), d2=n2%10, p1=n1*d2, p2=n1*d1, total=n1*n2;
         steps = [
             {id:'p1_1', ans:p1%10, h:[4,10]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[3,10]}, {id:'p1_100', ans:Math.floor(p1/100)%10, h:[2,10]}, {id:'p1_1000', ans:Math.floor(p1/1000)||0, h:[2,10]},
-            {id:'p2_10', ans:p2%10, h:[4,9]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[3,9]}, {id:'p2_1000', ans:Math.floor(p2/100)%10, h:[2,9]}, {id:'p2_10000', ans:Math.floor(p2/1000)||0, h:[2,9]},
+            {id:'p2_10', ans:p2%10, h:[4,9]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[3,9]}, {id:'p2_1000', ans:Math.floor(p2/10)%10, h:[2,9]}, {id:'p2_10000', ans:Math.floor(p2/1000)||0, h:[2,9]},
             {id:'a1', ans:total%10, h:[16,22]}, {id:'a10', ans:Math.floor(total/10)%10, h:[15,21]}, {id:'a100', ans:Math.floor(total/100)%10, h:[14,20]}, {id:'a1000', ans:Math.floor(total/1000)%10, h:[13,19]}, {id:'a10000', ans:Math.floor(total/10000)||0, h:[12,18]}
         ];
     }
@@ -234,6 +219,7 @@
     }
 
     function check() {
+        if(cur >= steps.length) return;
         const s = steps[cur]; const activeCell = document.getElementById(s.id);
         if(!activeCell) return;
         const val = activeCell.querySelector('.num-display').textContent;
@@ -241,17 +227,19 @@
             activeCell.classList.remove('input','active'); activeCell.style.color="#1d4ed8";
             activeCell.style.background = "#dcfce7";
             soundMagic.play(); cur++;
-            if(cur>=steps.length) gameClear();
-            else { checkAutoSkip(); if(cur>=steps.length) gameClear(); else update(); }
+            checkAutoSkip();
+            if(cur>=steps.length) gameClear(); else update();
         } else { activeCell.querySelector('.num-display').textContent = ""; activeCell.animate([{background:'#fee2e2'}, {background:'#fff'}], 300); }
     }
 
     function checkAutoSkip() {
         while(cur < steps.length) {
             const s = steps[cur];
-            if(s.ans === 0 && (s.id.endsWith('00') || s.id.endsWith('000') || s.id.endsWith('0000'))) {
+            // 先頭の0を飛ばす判定。IDが特定の大きな桁を示す場合に限定
+            const isLeadingZero = (s.ans === 0 && (s.id.endsWith('00') || s.id.endsWith('000') || s.id.endsWith('0000')));
+            if(isLeadingZero) {
                 const cell = document.getElementById(s.id);
-                if(cell) cell.classList.remove('input','active');
+                if(cell) { cell.classList.remove('input','active'); cell.style.background = "transparent"; }
                 cur++;
             } else break;
         }
@@ -272,9 +260,10 @@
 
     function update() {
         document.querySelectorAll('.cell').forEach(c=>c.classList.remove('active','highlight'));
+        if(cur >= steps.length) return;
         const activeCell = document.getElementById(steps[cur].id);
-        if(activeCell) { activeCell.classList.add('active'); activeCell.scrollIntoView({behavior:'smooth', block:'center'}); }
-        if(steps[cur]) {
+        if(activeCell) { activeCell.classList.add('active'); }
+        if(steps[cur] && steps[cur].h) {
             steps[cur].h.forEach(idx => {
                 const target = document.querySelectorAll('.cell')[idx];
                 if(target) target.classList.add('highlight');
@@ -283,7 +272,7 @@
     }
 
     function showHint() {
-        if(!steps[cur]) return;
+        if(cur >= steps.length) return;
         steps[cur].h.forEach(idx => {
             const el = document.querySelectorAll('.cell')[idx];
             if(el) el.animate([{background:'#fef08a'}, {background:'#facc15'}, {background:'#fef08a'}], 500);
