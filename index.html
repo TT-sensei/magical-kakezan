@@ -11,36 +11,31 @@
             --bg: #f0f4f8; --font-family: 'Mochiy Pop P One', cursive;
         }
         body { font-family: var(--font-family); background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 95%; max-width: 500px; border: 5px solid var(--primary); position: relative; }
+        .container { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 95%; max-width: 500px; border: 5px solid var(--primary); position: relative; }
         
-        .stats-area { font-size: 14px; color: #555; margin-bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
-        .total-gems { color: #fbc02d; font-weight: bold; font-size: 18px; }
-        .title-display { color: #e91e63; font-size: 16px; font-weight: bold; background: #fff9f0; padding: 2px 12px; border-radius: 20px; border: 1px solid #ffe0b2; }
+        .stats-area { font-size: 16px; color: #555; margin-bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .total-gems { color: #fbc02d; font-weight: bold; font-size: 20px; }
+        .title-display { color: #e91e63; font-size: 18px; font-weight: bold; background: #fff9f0; padding: 4px 15px; border-radius: 20px; border: 1px solid #ffe0b2; }
 
-        .board { display: inline-grid; grid-template-columns: repeat(5, 50px); gap: 2px; background: #fff; padding: 15px; border-radius: 15px; border: 3px solid #ddd; margin-bottom: 15px; }
+        .level-select { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
+        .level-btn { border: none; padding: 8px 12px; border-radius: 12px; cursor: pointer; font-family: var(--font-family); background: #eee; transition: 0.3s; }
+        .level-btn.active { background: var(--secondary); transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+
+        .board { display: inline-grid; grid-template-columns: repeat(5, 50px); gap: 2px; background: #fff; padding: 20px; border-radius: 15px; border: 3px solid #ddd; margin-bottom: 20px; }
         .cell { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-size: 28px; position: relative; border-radius: 5px; }
         
-        /* メモ専用マスのスタイル */
-        .memo-cell {
-            position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
-            width: 24px; height: 24px; font-size: 16px; color: #ff5722;
-            background: #fff; border: 1px solid #ffccbc; border-radius: 4px;
-            display: flex; justify-content: center; align-items: center; cursor: pointer;
-        }
-        .memo-cell.active { border: 2px solid #ff5722; background: #fff3e0; }
-
         .cell.highlight { background: #fff59d; border: 3px solid var(--secondary); animation: pulse 1s infinite alternate; z-index: 2; }
-        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
+        @keyframes pulse { from { transform: scale(1); box-shadow: 0 0 5px var(--secondary); } to { transform: scale(1.1); box-shadow: 0 0 15px var(--secondary); } }
 
         .cell.input { background: #e3f2fd; border: 2px dashed var(--accent); cursor: pointer; }
         .cell.active { border: 3px solid #ff5722; background: #fff; box-shadow: 0 0 10px rgba(255,87,34,0.5); }
         .cell.op { color: #888; font-size: 24px; }
         .line { grid-column: 1 / 6; height: 4px; background: #444; margin: 4px 0; border-radius: 2px; }
 
-        .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .key { padding: 12px; font-size: 22px; border: none; border-radius: 12px; background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); }
+        .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .key { padding: 15px; font-size: 24px; border: none; border-radius: 12px; background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); }
         .key.del { background: #f44336; }
-        .key.ok { background: var(--primary); grid-column: span 2; }
+        .key.enter { background: var(--primary); grid-column: span 3; }
 
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 15px; z-index: 100; }
     </style>
@@ -53,28 +48,43 @@
         <div class="title-display">称号: <span id="currentTitle">かけだし</span></div>
     </div>
 
-    <div id="piko" style="height:25px; margin-bottom:25px; color:var(--primary); font-size: 14px;">上の四角はメモだよ！</div>
-    
-    <div class="board" id="board"></div>
-
-    <div class="keyboard">
-        <button class="key" onclick="numInput(1)">1</button><button class="key" onclick="numInput(2)">2</button><button class="key" onclick="numInput(3)">3</button>
-        <button class="key" onclick="numInput(4)">4</button><button class="key" onclick="numInput(5)">5</button><button class="key" onclick="numInput(6)">6</button>
-        <button class="key" onclick="numInput(7)">7</button><button class="key" onclick="numInput(8)">8</button><button class="key" onclick="numInput(9)">9</button>
-        <button class="key del" onclick="numInput('del')">↩</button><button class="key" onclick="numInput(0)">0</button><button class="key ok" onclick="check()">OK!</button>
+    <div class="level-select">
+        <button class="level-btn active" onclick="setLevel(1)">見習い</button>
+        <button class="level-btn" onclick="setLevel(2)">魔導師</button>
+        <button class="level-btn" onclick="setLevel(3)">大賢者</button>
     </div>
-
+    <div id="piko" style="height:30px; margin-bottom:10px; color:var(--primary);">修行開始！</div>
+    <div class="board" id="board"></div>
+    <div class="keyboard">
+        <button class="key" onclick="input(1)">1</button><button class="key" onclick="input(2)">2</button><button class="key" onclick="input(3)">3</button>
+        <button class="key" onclick="input(4)">4</button><button class="key" onclick="input(5)">5</button><button class="key" onclick="input(6)">6</button>
+        <button class="key" onclick="input(7)">7</button><button class="key" onclick="input(8)">8</button><button class="key" onclick="input(9)">9</button>
+        <button class="key del" onclick="input('del')">↩</button><button class="key" onclick="input(0)">0</button><button class="key" onclick="check()">OK!</button>
+    </div>
     <div class="overlay" id="clearOverlay">
-        <h2 style="font-size:30px;">合格！💎</h2>
-        <div id="gems" style="font-size:50px;"></div>
-        <button class="key" style="width:100px" onclick="initGame()">次へ</button>
+        <h2 style="font-size:40px;">合格！💎</h2>
+        <div id="gems" style="font-size:60px;"></div>
+        <button class="key" onclick="initGame()">次へ</button>
     </div>
 </div>
 
 <script>
-    const titles = ["魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士", "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】", "炎の術師", "水の魔導士", "風の旅人", "大地の守護者", "雷鳴の使い手", "氷結の魔導師", "光の導き手", "闇を払う者", "精霊との契約者", "【エリート魔導師】", "古代文字の解読者", "秘宝の探索者", "幻獣の友", "錬金術の達人", "時空の旅人", "異世界の案内人", "魔力回路の天才", "伝説の語り部", "禁忌の魔法使い", "【大魔導師】", "賢者の弟子", "真理の追究者", "浮遊島の主", "龍の騎士", "運命の操作者", "神話の生き残り", "聖域の守護聖人", "宇宙の観測者", "多次元の覇者", "【大賢者】", "神の代行者", "創造の魔法使い", "永遠を生きる者", "銀河の調停者", "魔法界の王", "全知全能の萌芽", "神話の創造主", "次元を超えし存在", "魔法の根源", "【筆算の神】"];
-    let n1, n2, steps=[], cur=0, focusOnMemo = false;
+    const titles = [
+        "魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士",
+        "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】",
+        "炎の術師", "水の魔導士", "風の旅人", "大地の守護者", "雷鳴の使い手",
+        "氷結の魔導師", "光の導き手", "闇を払う者", "精霊との契約者", "【エリート魔導師】",
+        "古代文字の解読者", "秘宝の探索者", "幻獣の友", "錬金術の達人", "時空の旅人",
+        "異世界の案内人", "魔力回路の天才", "伝説の語り部", "禁忌の魔法使い", "【大魔導師】",
+        "賢者の弟子", "真理の追究者", "浮遊島の主", "龍の騎士", "運命の操作者",
+        "神話の生き残り", "聖域の守護聖人", "宇宙の観測者", "多次元の覇者", "【大賢者】",
+        "神の代行者", "創造の魔法使い", "永遠を生きる者", "銀河の調停者", "魔法界の王",
+        "全知全能の萌芽", "神話の創造主", "次元を超えし存在", "魔法の根源", "【筆算の神】"
+    ];
+
+    let level=1, n1, n2, steps=[], cur=0;
     let totalGems = parseInt(localStorage.getItem('mathGems')) || 0;
+    
     const soundMagic = new Audio('https://actions.google.com/sounds/v1/cartoon/glissando.ogg');
     const soundClear = new Audio('https://actions.google.com/sounds/v1/cartoon/positive_musical_chip.ogg');
 
@@ -82,22 +92,36 @@
         document.getElementById('totalGemsCount').innerText = totalGems;
         let titleIdx = Math.floor(totalGems / 10);
         if (titleIdx >= titles.length) titleIdx = titles.length - 1;
-        document.getElementById('currentTitle').innerText = totalGems < 10 ? "かけだし" : titles[titleIdx - 1];
+        if (totalGems < 10) {
+            document.getElementById('currentTitle').innerText = "かけだし";
+        } else {
+            document.getElementById('currentTitle').innerText = titles[titleIdx - 1];
+        }
     }
+
+    function setLevel(l) { level=l; document.querySelectorAll('.level-btn').forEach((b,i)=>b.classList.toggle('active',i+1===l)); initGame(); }
 
     function initGame() {
         document.getElementById('clearOverlay').style.display='none';
-        focusOnMemo = false;
         updateStats();
         n1 = Math.floor(Math.random()*80)+12;
-        n2 = Math.floor(Math.random()*80)+12;
-        const d3=Math.floor(n2/10), d4=n2%10;
+        n2 = (level===1) ? Math.floor(Math.random()*5)+11 : Math.floor(Math.random()*80)+12;
+        if(level===1) while((n1%10)*(n2%10)>=10) n1++;
+        
+        const d1=Math.floor(n1/10), d2=n1%10, d3=Math.floor(n2/10), d4=n2%10;
         const p1=n1*d4, p2=n1*d3, total=n1*n2;
 
         steps = [
-            {id:'p1_1', ans:p1%10, h:[3,8]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]}, {id:'p1_100', ans:Math.floor(p1/100)||0, h:[2,8]},
-            {id:'p2_10', ans:p2%10, h:[3,7]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]}, {id:'p2_1000', ans:Math.floor(p2/100)||0, h:[2,7]},
-            {id:'a1', ans:total%10, h:[13,18]}, {id:'a10', ans:Math.floor(total/10)%10, h:[12,17]}, {id:'a100', ans:Math.floor(total/100)%10, h:[11,16]}, {id:'a1000', ans:Math.floor(total/1000)||0, h:[10,15]}
+            {id:'p1_1', ans:p1%10, h:[3,8]},
+            {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]},
+            {id:'p1_100', ans:Math.floor(p1/100)||0, h:[2,8]},
+            {id:'p2_10', ans:p2%10, h:[3,7]},
+            {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]},
+            {id:'p2_1000', ans:Math.floor(p2/100)||0, h:[2,7]},
+            {id:'a1', ans:total%10, h:[13,18]},
+            {id:'a10', ans:Math.floor(total/10)%10, h:[12,17]},
+            {id:'a100', ans:Math.floor(total/100)%10, h:[11,16]},
+            {id:'a1000', ans:Math.floor(total/1000)||0, h:[10,15]}
         ];
         render(); cur=0; update();
     }
@@ -114,84 +138,42 @@
             <div class="line"></div>
             <div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>
         `;
-        document.querySelectorAll('.cell.input').forEach(el => {
-            const m = document.createElement('div');
-            m.className = 'memo-cell';
-            m.onclick = (e) => {
-                e.stopPropagation();
-                setFocus(el.id, true);
-            };
-            el.appendChild(m);
-            el.onclick = () => setFocus(el.id, false);
-        });
-    }
-
-    function setFocus(id, isMemo) {
-        // 現在のステップと一致している場合のみフォーカス可能
-        if(id !== steps[cur].id) return;
-        focusOnMemo = isMemo;
-        update();
     }
 
     function update() {
         const cells = document.querySelectorAll('.cell');
-        cells.forEach(c=>{
-            c.classList.remove('active','highlight');
-            const m = c.querySelector('.memo-cell');
-            if(m) m.classList.remove('active');
-        });
-
+        cells.forEach(c=>c.classList.remove('active','highlight'));
         const s = steps[cur];
-        const activeCell = document.getElementById(s.id);
-        if(activeCell) {
-            if(focusOnMemo) {
-                activeCell.querySelector('.memo-cell').classList.add('active');
-            } else {
-                activeCell.classList.add('active');
-            }
-        }
+        const active = document.getElementById(s.id);
+        if(active) active.classList.add('active');
         s.h.forEach(idx => { if(cells[idx]) cells[idx].classList.add('highlight'); });
     }
 
-    function numInput(v) {
-        const activeCell = document.getElementById(steps[cur].id);
-        if(!activeCell) return;
-
-        if(focusOnMemo) {
-            const memo = activeCell.querySelector('.memo-cell');
-            memo.innerText = (v === 'del') ? "" : v;
-        } else {
-            // メインの数字入力（childNodes[0]にテキスト、[1]にメモ要素がある想定）
-            if(v === 'del') activeCell.childNodes[0].textContent = "";
-            else activeCell.childNodes[0].textContent = v;
-        }
+    function input(v) {
+        const active = document.getElementById(steps[cur].id);
+        if(!active) return;
+        if(v==='del') active.innerText = "";
+        else active.innerText = v;
     }
 
     function check() {
         const s = steps[cur];
-        const activeCell = document.getElementById(s.id);
-        const val = activeCell.childNodes[0].textContent;
-        if(val !== "" && parseInt(val)===s.ans) {
-            activeCell.classList.remove('input'); 
-            activeCell.style.color="blue";
-            activeCell.onclick = null;
-            const m = activeCell.querySelector('.memo-cell');
-            if(m) { m.onclick = null; m.style.border = "none"; m.style.background = "transparent"; }
-            
+        const active = document.getElementById(s.id);
+        if(active && (active.innerText !== "") && parseInt(active.innerText)===s.ans) {
+            active.classList.remove('input'); active.style.color="blue";
             soundMagic.currentTime = 0; soundMagic.play();
             cur++;
-            focusOnMemo = false;
             if(cur>=steps.length) gameClear();
             else update();
         } else {
-            activeCell.childNodes[0].textContent = "";
+            if(active) active.innerText=""; 
             document.getElementById('piko').innerText="ちがうよ！もういちど！";
-            setTimeout(()=>document.getElementById('piko').innerText="上の四角はメモだよ！", 1000);
+            setTimeout(()=>document.getElementById('piko').innerText="修行中...", 1000);
         }
     }
 
     function gameClear() {
-        const earnGems = 3;
+        const earnGems = level===1 ? 1 : level===2 ? 3 : 5;
         totalGems += earnGems;
         localStorage.setItem('mathGems', totalGems);
         updateStats();
