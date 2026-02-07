@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>魔法の筆算道場 - レベル1最適化版</title>
+    <title>魔法の筆算道場 - 完全版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap');
         :root {
@@ -15,15 +15,19 @@
         body { 
             font-family: var(--font-family); background: var(--bg); 
             display: flex; justify-content: center; align-items: flex-start;
-            min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden;
+            min-height: 100vh; margin: 0; padding: 5px; overflow-x: hidden;
         }
 
+        /* コンテナの調整：スマホでは枠を細くして中身を広く */
         .container { 
             background: white; border-radius: 20px; padding: 10px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; 
             width: 100%; max-width: 900px;
             border: 5px solid var(--primary); 
             position: relative;
+        }
+        @media (max-width: 767px) {
+            .container { border-width: 2px; padding: 5px; border-radius: 12px; }
         }
 
         .game-main { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; }
@@ -36,16 +40,22 @@
         }
 
         .top-btns { display: flex; justify-content: space-between; width: 100%; padding: 0 5px; margin-bottom: 5px; }
-        .icon-btn { background: white; border: 1px solid #ccc; border-radius: 8px; padding: 4px 8px; cursor: pointer; font-family: var(--font-family); font-size: 11px; }
+        .icon-btn { background: white; border: 1px solid #ccc; border-radius: 8px; padding: 6px 10px; cursor: pointer; font-family: var(--font-family); font-size: 12px; }
 
         .stats-area { margin-bottom: 5px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
-        .total-gems { color: #fbc02d; font-weight: bold; font-size: 16px; }
+        .total-gems { color: #fbc02d; font-weight: bold; font-size: 18px; }
         .title-display { color: #e91e63; font-size: 13px; font-weight: bold; background: #fff9f0; padding: 2px 10px; border-radius: 20px; border: 1px solid #ffe0b2; }
         
-        .menu-overlay, .record-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 500; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px; }
-        .record-overlay { display: none; justify-content: flex-start; padding-top: 30px; overflow-y: auto; }
+        /* 記録・メニュー画面の重なり順を修正 */
+        .menu-overlay, .record-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: white; z-index: 1000; border-radius: 15px; 
+            display: flex; flex-direction: column; justify-content: center; 
+            align-items: center; padding: 20px; 
+        }
+        .record-overlay { display: none; justify-content: flex-start; overflow-y: auto; }
 
-        .level-btn { width: 90%; max-width: 300px; padding: 10px; margin: 4px; border: none; border-radius: 12px; font-family: var(--font-family); font-size: 14px; color: white; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
+        .level-btn { width: 95%; max-width: 300px; padding: 12px; margin: 5px; border: none; border-radius: 12px; font-family: var(--font-family); font-size: 14px; color: white; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2); flex-shrink: 0; }
         .lv1 { background: #8bc34a; } .lv2 { background: #aed581; } .lv3 { background: #ff9800; } .lv4 { background: #f44336; } .lv5 { background: #9c27b0; }
 
         .board { 
@@ -57,7 +67,7 @@
         .board.col5 { grid-template-columns: repeat(5, 1fr); }
         .board.col6 { grid-template-columns: repeat(6, 1fr); }
 
-        .cell { aspect-ratio: 1/1; display: flex; justify-content: center; align-items: center; font-size: min(7vw, 28px); position: relative; border-radius: 5px; font-weight: bold; }
+        .cell { aspect-ratio: 1/1; display: flex; justify-content: center; align-items: center; font-size: min(8vw, 28px); position: relative; border-radius: 5px; font-weight: bold; }
         @media (min-width: 768px) { .cell { font-size: 26px; } }
 
         .num-display { position: relative; z-index: 2; pointer-events: none; }
@@ -70,32 +80,34 @@
         .line.w5 { grid-column: 1 / 6; }
         .line.w6 { grid-column: 1 / 7; }
 
-        .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; max-width: 350px; margin: 0 auto; }
-        .key { padding: 12px 0; font-size: 20px; border: none; border-radius: 10px; background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); box-shadow: 0 4px 0 #1976D2; }
+        .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; max-width: 350px; margin: 0 auto; }
+        .key { padding: 15px 0; font-size: 22px; border: none; border-radius: 10px; background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); box-shadow: 0 4px 0 #1976D2; flex-shrink: 0; min-height: 55px; }
         .key.ok { background: var(--primary); box-shadow: 0 4px 0 #388E3C; grid-column: span 2; }
 
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 15px; z-index: 600; }
-        .stat-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 10px; }
-        .stat-table th, .stat-table td { border-bottom: 1px solid #eee; padding: 8px; text-align: center; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 15px; z-index: 2000; }
+        .stat-table { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 15px; background: #f9f9f9; }
+        .stat-table th, .stat-table td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        .stat-table th { background: #eee; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="levelMenu" class="menu-overlay">
-        <h2 style="color:var(--primary);">修行を選べ！</h2>
+        <h2 style="color:var(--primary); margin-bottom:10px;">修行を選べ！</h2>
         <button class="level-btn lv1" onclick="startLevel(1)">Lv1 (💎1) 2×1</button>
         <button class="level-btn lv2" onclick="startLevel(2)">Lv2 (💎2) 2×2 かんたん</button>
         <button class="level-btn lv3" onclick="startLevel(3)">Lv3 (💎3) 2×2 ふつう</button>
         <button class="level-btn lv4" onclick="startLevel(4)">Lv4 (💎4) 2×2 むずい</button>
         <button class="level-btn lv5" onclick="startLevel(5)">Lv5 (💎5) 3×2</button>
-        <button onclick="toggleRecord(true)" style="margin-top:10px; background:none; border:none; color:var(--accent); font-family:var(--font-family); cursor:pointer;">📜 修行の記録</button>
+        <button onclick="toggleRecord(true)" style="margin-top:15px; background:none; border:none; color:var(--accent); font-family:var(--font-family); cursor:pointer; font-size:16px;">📜 修行の記録をみる</button>
     </div>
 
     <div id="recordScreen" class="record-overlay">
         <h2 style="color:var(--accent);">修行の成果</h2>
         <div id="recordContent" style="width:100%;"></div>
-        <button class="level-btn lv1" onclick="toggleRecord(false)" style="margin-top:20px;">戻る</button>
+        <button class="level-btn lv1" onclick="toggleRecord(false)" style="margin-top:20px;">閉じる</button>
+        <button onclick="resetStats()" style="margin-top:25px; font-size:12px; color:#999; background:none; border:none; text-decoration: underline;">成績をリセットする</button>
     </div>
 
     <div class="top-btns">
@@ -111,23 +123,23 @@
     <div class="game-main">
         <div class="board-container">
             <div class="board" id="board"></div>
-            <div style="margin-top:5px;"><button onclick="clearAllMemos()" style="font-size:10px; color:#999; background:none; border:none;">メモ消去</button></div>
+            <div style="margin-top:5px;"><button onclick="clearAllMemos()" style="font-size:12px; color:#666; background:#eee; border:1px solid #ccc; padding:5px 10px; border-radius:5px; cursor:pointer;">メモをすべて消す</button></div>
         </div>
         <div class="keyboard-container">
             <div class="keyboard">
                 <button class="key" onclick="numInput(1)">1</button><button class="key" onclick="numInput(2)">2</button><button class="key" onclick="numInput(3)">3</button>
                 <button class="key" onclick="numInput(4)">4</button><button class="key" onclick="numInput(5)">5</button><button class="key" onclick="numInput(6)">6</button>
                 <button class="key" onclick="numInput(7)">7</button><button class="key" onclick="numInput(8)">8</button><button class="key" onclick="numInput(9)">9</button>
-                <button class="key" style="background:#f44336" onclick="numInput('del')">↩</button><button class="key" onclick="numInput(0)">0</button><button class="key" style="background:#9c27b0" onclick="showHint()">💡</button>
+                <button class="key" style="background:#f44336; box-shadow: 0 4px 0 #b71c1c;" onclick="numInput('del')">↩</button><button class="key" onclick="numInput(0)">0</button><button class="key" style="background:#9c27b0; box-shadow: 0 4px 0 #7b1fa2;" onclick="showHint()">💡</button>
                 <button class="key ok" onclick="check()">OK!</button>
             </div>
         </div>
     </div>
 
     <div class="overlay" id="clearOverlay">
-        <h2 id="clearMsg">合格！</h2>
-        <div id="gemsDisplay" style="font-size:30px; margin-bottom:15px;"></div>
-        <button class="key" style="width:100px" onclick="initGame()">次へ</button>
+        <h2 id="clearMsg" style="font-size:32px; color:var(--primary);">合格！</h2>
+        <div id="gemsDisplay" style="font-size:40px; margin-bottom:20px;"></div>
+        <button class="key" style="width:150px" onclick="initGame()">次へ</button>
     </div>
 </div>
 
@@ -140,11 +152,27 @@
     function save() { localStorage.setItem('mathStats', JSON.stringify(stats)); }
     function startLevel(lv) { currentLevel = lv; document.getElementById('levelMenu').style.display = 'none'; initGame(); }
     function backToMenu() { document.getElementById('levelMenu').style.display = 'flex'; }
-    function toggleRecord(show) { if(show) updateRecordHTML(); document.getElementById('recordScreen').style.display = show ? 'flex' : 'none'; }
+    
+    // 記録画面の表示切り替え
+    function toggleRecord(show) { 
+        if(show) updateRecordHTML();
+        document.getElementById('recordScreen').style.display = show ? 'flex' : 'none'; 
+    }
+
     function updateRecordHTML() {
-        let html = `<table class="stat-table"><tr><th>修練</th><th>回数</th><th>ミス</th></tr>`;
-        [1,2,3,4,5].forEach(lv => { const d=stats[`lv${lv}`]; html+=`<tr><td>Lv${lv}</td><td>${d.solve}</td><td>${d.miss}</td></tr>`; });
+        let html = `<table class="stat-table"><tr><th>レベル</th><th>合格</th><th>ミス</th></tr>`;
+        [1,2,3,4,5].forEach(lv => { 
+            const d = stats[`lv${lv}`] || {solve:0, miss:0};
+            html += `<tr><td>Lv${lv}</td><td>${d.solve}回</td><td>${d.miss}回</td></tr>`; 
+        });
         document.getElementById('recordContent').innerHTML = html + `</table>`;
+    }
+
+    function resetStats() { 
+        if(confirm("これまでの修行の記録をすべてリセットしますか？")){ 
+            stats = {totalGems:0,lv1:{solve:0,miss:0},lv2:{solve:0,miss:0},lv3:{solve:0,miss:0},lv4:{solve:0,miss:0},lv5:{solve:0,miss:0}}; 
+            save(); updateStats(); toggleRecord(false); 
+        } 
     }
 
     function initGame() {
