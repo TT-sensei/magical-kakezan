@@ -10,7 +10,7 @@
             --primary: #4CAF50; --secondary: #FFC107; --accent: #2196F3;
             --bg: #f0f4f8; --font-family: 'Mochiy Pop P One', cursive;
         }
-        body { font-family: var(--font-family); background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow: hidden; }
+        body { font-family: var(--font-family); background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; overflow: hidden; touch-action: none; }
         .container { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 95%; max-width: 500px; border: 5px solid var(--primary); position: relative; z-index: 10; }
         
         .stats-area { font-size: 16px; color: #555; margin-bottom: 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
@@ -22,17 +22,16 @@
         .board { display: inline-grid; grid-template-columns: repeat(5, 50px); gap: 2px; background: #fff; padding: 25px 20px 20px; border-radius: 15px; border: 3px solid #ddd; margin-bottom: 15px; position: relative; }
         .cell { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-size: 28px; position: relative; border-radius: 5px; }
         
-        /* 常に表示されるメモ欄 */
-        .memo-box {
-            position: absolute; top: -16px; left: 50%; transform: translateX(-50%);
-            width: 24px; height: 24px; font-size: 14px; color: #ff5722;
-            background: #fff; border: 1px solid #ffccbc; border-radius: 4px;
-            display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 3;
+        /* 手書きメモ用キャンバス */
+        .memo-canvas {
+            position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+            width: 32px; height: 32px;
+            background: rgba(255,255,255,0.8); border: 1px solid #ffccbc; border-radius: 4px;
+            cursor: crosshair; z-index: 5; touch-action: none;
         }
-        .memo-box.active { border: 2px solid #ff5722; background: #fff3e0; box-shadow: 0 0 5px rgba(255,87,34,0.5); }
 
         .cell.highlight { background: #fff59d; border: 2px solid var(--secondary); transition: 0.3s; }
-        .cell.hint-flash { background: #ffeb3b !important; transform: scale(1.1); z-index: 5; box-shadow: 0 0 15px #ffeb3b; }
+        .cell.hint-flash { background: #ffeb3b !important; transform: scale(1.1); z-index: 6; box-shadow: 0 0 15px #ffeb3b; }
 
         .cell.input { background: #e3f2fd; border: 2px dashed var(--accent); cursor: pointer; }
         .cell.active { border: 3px solid #ff5722; background: #fff; box-shadow: 0 0 10px rgba(255,87,34,0.5); }
@@ -43,7 +42,7 @@
         .key { padding: 12px; font-size: 22px; border: none; border-radius: 12px; background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); transition: 0.1s; }
         .key:active { transform: translateY(3px); }
         .key.del { background: #f44336; }
-        .key.hint { background: #9c27b0; font-size: 16px; }
+        .key.hint { background: #9c27b0; font-size: 14px; }
         .key.ok { background: var(--primary); grid-column: span 2; font-size: 24px; }
 
         #combo-text { position: absolute; top: -50px; right: 0; color: #ff5722; font-size: 22px; font-weight: bold; opacity: 0; pointer-events: none; }
@@ -62,13 +61,13 @@
         <div id="title-box" class="title-display">称号: <span id="currentTitle">かけだし</span></div>
     </div>
 
-    <div class="level-select" style="display:flex; justify-content:center; gap:8px; margin-bottom:15px;">
-        <button class="level-btn active" onclick="setLevel(1)" style="border:none; padding:8px 12px; border-radius:12px; font-family:var(--font-family);">見習い</button>
-        <button class="level-btn" onclick="setLevel(2)" style="border:none; padding:8px 12px; border-radius:12px; font-family:var(--font-family);">魔導師</button>
-        <button class="level-btn" onclick="setLevel(3)" style="border:none; padding:8px 12px; border-radius:12px; font-family:var(--font-family);">大賢者</button>
+    <div class="level-select" style="display:flex; justify-content:center; gap:8px; margin-bottom:10px;">
+        <button class="level-btn active" onclick="setLevel(1)" style="border:none; padding:6px 10px; border-radius:10px; font-family:var(--font-family);">見習い</button>
+        <button class="level-btn" onclick="setLevel(2)" style="border:none; padding:6px 10px; border-radius:10px; font-family:var(--font-family);">魔導師</button>
+        <button class="level-btn" onclick="setLevel(3)" style="border:none; padding:6px 10px; border-radius:10px; font-family:var(--font-family);">大賢者</button>
     </div>
     
-    <div id="piko" style="height:25px; margin-bottom:15px; color:var(--primary); font-size:14px;">上の四角はメモだよ！</div>
+    <div id="piko" style="height:25px; margin-bottom:10px; color:var(--primary); font-size:14px;">上の四角に「手書き」でメモできるよ！</div>
     
     <div class="board" id="board">
         <div id="combo-text"></div>
@@ -82,6 +81,8 @@
         <button class="key ok" onclick="check()">OK!</button>
     </div>
 
+    <button onclick="clearAllMemos()" style="margin-top:10px; background:none; border:1px solid #ccc; font-size:10px; color:#999; border-radius:5px; padding:2px 5px;">メモを全部消す</button>
+
     <div class="overlay" id="clearOverlay">
         <h2 style="font-size:40px;">合格！💎</h2>
         <div id="gems" style="font-size:60px;"></div>
@@ -90,8 +91,8 @@
 </div>
 
 <script>
-    const titles = ["魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士", "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】", "炎の術師", "水の魔導士", "風の旅人", "大地の守護者", "雷鳴の使い手", "氷結の魔導師", "光の導き手", "闇を払う者", "精霊との契約者", "【エリート魔導師】", "古代文字の解読者", "秘宝の探索者", "幻獣の友", "錬金術の達人", "時空の旅人", "異世界の案内人", "魔力回路の天才", "伝説の語り部", "禁忌の魔法使い", "【大魔導師】", "賢者の弟子", "真理の追究者", "浮遊島の主", "龍の騎士", "運命の操作者", "神話の生き残り", "聖域の守護聖人", "宇宙の観測者", "多次元の覇者", "【大賢者】", "神の代行者", "創造の魔法使い", "永遠を生きる者", "銀河の調停者", "魔法界の王", "全知全能の萌芽", "神話の創造主", "次元を超えし存在", "魔法의根源", "【筆算の神】"];
-    let level=1, n1, n2, steps=[], cur=0, focusOnMemo = false, combo = 0;
+    const titles = ["魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士", "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】", "炎の術師", "水の魔導士", "風の旅人", "大地の守護者", "雷鳴の使い手", "氷結の魔導師", "光の導き手", "闇を払う者", "精霊との契約者", "【エリート魔導師】", "古代文字の解読者", "秘宝の探索者", "幻獣の友", "錬金術の達人", "時空の旅人", "異世界の案内人", "魔力回路の天才", "伝説の語り部", "禁忌の魔法使い", "【大魔導師】", "賢者の弟子", "真理の追究者", "浮遊島の主", "龍の騎士", "運命の操作者", "神話の生き残り", "聖域の守護聖人", "宇宙の観測者", "多次元の覇者", "【大賢者】", "神の代行者", "創造の魔法使い", "永遠を生きる者", "銀河の調停者", "魔法界の王", "全知全能の萌芽", "神話の創造主", "次元を超えし存在", "魔法の根源", "【筆算の神】"];
+    let level=1, n1, n2, steps=[], cur=0, combo = 0;
     let totalGems = parseInt(localStorage.getItem('mathGems')) || 0;
     const soundMagic = new Audio('https://actions.google.com/sounds/v1/cartoon/glissando.ogg');
     const soundClear = new Audio('https://actions.google.com/sounds/v1/cartoon/positive_musical_chip.ogg');
@@ -138,7 +139,7 @@
 
     function initGame() {
         document.getElementById('clearOverlay').style.display='none';
-        focusOnMemo = false; combo = 0; updateStats(true);
+        combo = 0; updateStats(true);
         n1 = Math.floor(Math.random()*80)+12;
         n2 = (level===1) ? Math.floor(Math.random()*5)+11 : Math.floor(Math.random()*80)+12;
         if(level===1) while((n1%10)*(n2%10)>=10) n1++;
@@ -152,28 +153,54 @@
         const b = document.getElementById('board');
         const s1=String(n1).padStart(2,' '), s2=String(n2).padStart(2,' ');
         b.innerHTML = `<div id="combo-text"></div><div class="cell op"></div><div class="cell op"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell op"></div><div class="cell op">×</div><div class="cell op"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell op"></div><div class="line"></div><div class="cell op"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell op"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell op"></div><div class="line"></div><div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>`;
+        
         document.querySelectorAll('.cell.input').forEach(el => {
-            const m = document.createElement('div'); m.className = 'memo-box';
-            m.onclick = (e) => { e.stopPropagation(); setFocus(el.id, true); };
-            el.appendChild(m); el.onclick = () => setFocus(el.id, false);
+            const canvas = document.createElement('canvas');
+            canvas.className = 'memo-canvas';
+            canvas.width = 32; canvas.height = 32;
+            el.appendChild(canvas);
+            initDrawing(canvas);
+            el.onclick = () => { if(el.id === steps[cur].id) update(); };
         });
     }
 
-    function setFocus(id, isMemo) { if(id !== steps[cur].id) return; focusOnMemo = isMemo; update(); }
+    function initDrawing(canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.strokeStyle = '#ff5722'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+        let drawing = false;
+        const getPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        };
+        const start = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); };
+        const move = (e) => { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+        const end = () => { drawing = false; };
+        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
+        canvas.addEventListener('touchstart', start); canvas.addEventListener('touchmove', move); window.addEventListener('touchend', end);
+    }
+
+    function clearAllMemos() {
+        document.querySelectorAll('.memo-canvas').forEach(canvas => {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+    }
 
     function update() {
         const cells = document.querySelectorAll('.cell');
-        cells.forEach(c=>{ c.classList.remove('active','highlight'); const m = c.querySelector('.memo-box'); if(m) m.classList.remove('active'); });
+        cells.forEach(c=>c.classList.remove('active','highlight'));
         const s = steps[cur]; const activeCell = document.getElementById(s.id);
-        if(activeCell) { if(focusOnMemo) activeCell.querySelector('.memo-box').classList.add('active'); else activeCell.classList.add('active'); }
+        if(activeCell) activeCell.classList.add('active');
         s.h.forEach(idx => { if(cells[idx]) cells[idx].classList.add('highlight'); });
     }
 
     function numInput(v) {
         const activeCell = document.getElementById(steps[cur].id);
         if(!activeCell) return;
-        if(focusOnMemo) { const m = activeCell.querySelector('.memo-box'); m.innerText = (v==='del') ? "" : v; }
-        else { if(v==='del') activeCell.childNodes[0].textContent = ""; else activeCell.childNodes[0].textContent = v; }
+        if(v==='del') activeCell.childNodes[0].textContent = "";
+        else activeCell.childNodes[0].textContent = v;
     }
 
     function check() {
@@ -182,14 +209,13 @@
         if(val !== "" && parseInt(val)===s.ans) {
             combo++; showCombo();
             activeCell.classList.remove('input'); activeCell.style.color="blue";
-            const m = activeCell.querySelector('.memo-box'); if(m) { m.style.border="none"; m.style.background="transparent"; }
             soundMagic.currentTime = 0; soundMagic.play();
-            cur++; focusOnMemo = false;
+            cur++;
             if(cur>=steps.length) gameClear(); else update();
         } else {
             combo = 0; activeCell.childNodes[0].textContent = "";
             document.getElementById('piko').innerText="ちがうよ！もういちど！";
-            setTimeout(()=>document.getElementById('piko').innerText="上の四角はメモだよ！", 1000);
+            setTimeout(()=>document.getElementById('piko').innerText="上の四角にメモできるよ！", 1000);
         }
     }
 
