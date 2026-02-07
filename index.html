@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>魔法の筆算道場 - 伝説の3桁(修正版)</title>
+    <title>魔法の筆算道場 - 究極の完成版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap');
         :root {
@@ -32,7 +32,6 @@
         .menu-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 200; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px; }
         .level-btn { width: 90%; padding: 12px; margin: 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-size: 16px; color: white; cursor: pointer; transition: 0.1s; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
         .lv1 { background: #8bc34a; } .lv2 { background: #ff9800; } .lv3 { background: #f44336; } .lv4 { background: #9c27b0; }
-        .level-btn:active { transform: translateY(2px); box-shadow: none; }
 
         .board { 
             display: inline-grid; 
@@ -67,9 +66,9 @@
 <div class="container">
     <div id="levelMenu" class="menu-overlay">
         <h2 style="color:var(--primary);">修行を選べ！</h2>
-        <button class="level-btn lv1" onclick="startLevel(1)">Lv1 (💎1) 2×2: 1〜4のみ</button>
+        <button class="level-btn lv1" onclick="startLevel(1)">Lv1 (💎1) 2×2: 1〜4</button>
         <button class="level-btn lv2" onclick="startLevel(2)">Lv2 (💎3) 2×2: 1〜9</button>
-        <button class="level-btn lv3" onclick="startLevel(3)">Lv3 (💎5) 2×2: 0〜9</button>
+        <button class="level-btn lv3" onclick="startLevel(3)">Lv3 (💎5) 2×2: 0あり</button>
         <button class="level-btn lv4" onclick="startLevel(4)">Lv4 (💎7) 3×2: 伝説の挑戦</button>
     </div>
 
@@ -78,9 +77,7 @@
         <div id="title-box" class="title-display">称号: <span id="currentTitle">かけだし</span></div>
     </div>
     
-    <div id="piko" style="margin-bottom:8px; color:var(--primary); font-size:12px;">修行開始！</div>
-    
-    <div class="board col5" id="board"></div>
+    <div class="board" id="board"></div>
 
     <div class="keyboard">
         <button class="key" onclick="numInput(1)">1</button><button class="key" onclick="numInput(2)">2</button><button class="key" onclick="numInput(3)">3</button>
@@ -103,7 +100,7 @@
 </div>
 
 <script>
-    const titles = ["魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士", "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】", "炎の術師", "水の魔導士", "風の旅人", "大地の守護者", "雷鳴の使い手", "氷結の魔導師", "光の導き手", "闇を払う者", "精霊との契約者", "【エリート魔導師】", "古代文字の解読者", "秘宝の探索者", "幻獣の友", "錬金術の達人", "時空の旅人", "異世界の案内人", "魔力回路の天才", "伝説の語り部", "禁忌の魔法使い", "【大魔導師】", "賢者の弟子", "真理の追究者", "浮遊島の主", "龍の騎士", "運命の操作者", "神話の生き残り", "聖域の守護聖人", "宇宙の観測者", "多次元の覇者", "【大賢者】", "神の代行者", "創造の魔法使い", "永遠を生きる者", "銀河の調停者", "魔法界の王", "全知全能の萌芽", "神話の創造主", "次元を超えし存在", "魔法の根源", "【筆算の神】"];
+    const titles = ["魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士", "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】", "【筆算の神】"];
     let n1, n2, steps=[], cur=0, currentLevel = 1, totalGems = parseInt(localStorage.getItem('mathGems')) || 0;
     const soundMagic = new Audio('https://actions.google.com/sounds/v1/cartoon/glissando.ogg');
 
@@ -112,39 +109,43 @@
 
     function initGame() {
         document.getElementById('clearOverlay').style.display='none';
-        let b = document.getElementById('board');
-        if (currentLevel === 4) {
-            b.className = "board col6";
-            setup3x2();
-        } else {
-            b.className = "board col5";
-            setup2x2();
-        }
+        const b = document.getElementById('board');
+        if (currentLevel === 4) { b.className = "board col6"; setup3x2(); } 
+        else { b.className = "board col5"; setup2x2(); }
         render(); cur=0; checkAutoSkip(); update();
     }
+
+    // 共通のskipフラグ作成関数：先頭の0かどうかを判定
+    const isLead0 = (val, isHighestDigit) => (val === 0 && isHighestDigit);
 
     function setup2x2() {
         let min = (currentLevel === 1) ? 1 : 0;
         let max = (currentLevel === 1) ? 4 : 9;
         const gen = () => Math.floor(Math.random() * (max - min + 1)) + min;
         n1 = (gen()||1)*10 + gen(); n2 = (gen()||1)*10 + gen();
-        const d3=Math.floor(n2/10), d4=n2%10, p1=n1*d4, p2=n1*d3, total=n1*n2;
+        const d10=Math.floor(n2/10), d1=n2%10, p1=n1*d1, p2=n1*d10, total=n1*n2;
+        
         steps = [
-            {id:'p1_1', ans:p1%10, h:[3,8]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]}, {id:'p1_100', ans:Math.floor(p1/100)||0, h:[2,8]},
-            {id:'p2_10', ans:p2%10, h:[3,7]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]}, {id:'p2_1000', ans:Math.floor(p2/100)||0, h:[2,7]},
-            {id:'a1', ans:total%10, h:[13,18]}, {id:'a10', ans:Math.floor(total/10)%10, h:[12,17]}, {id:'a100', ans:Math.floor(total/100)%10, h:[11,16]}, {id:'a1000', ans:Math.floor(total/1000)||0, h:[10,15]}
+            {id:'p1_1', ans:p1%10, h:[3,8]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]}, 
+            {id:'p1_100', ans:Math.floor(p1/100)||0, h:[2,8], skip:isLead0(Math.floor(p1/100)||0, true)},
+            {id:'p2_10', ans:p2%10, h:[3,7]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]}, 
+            {id:'p2_1000', ans:Math.floor(p2/100)||0, h:[2,7], skip:isLead0(Math.floor(p2/100)||0, true)},
+            {id:'a1', ans:total%10, h:[13,18]}, {id:'a10', ans:Math.floor(total/10)%10, h:[12,17]}, {id:'a100', ans:Math.floor(total/100)%10, h:[11,16]}, 
+            {id:'a1000', ans:Math.floor(total/1000)||0, h:[10,15], skip:isLead0(Math.floor(total/1000)||0, true)}
         ];
     }
 
     function setup3x2() {
-        n1 = Math.floor(Math.random() * 900) + 100;
-        n2 = Math.floor(Math.random() * 90) + 10;
-        const d1=Math.floor(n2/10), d2=n2%10, p1=n1*d2, p2=n1*d1, total=n1*n2;
-        // 修正：6列盤面のインデックスに合わせてハイライト位置を調整
+        n1 = Math.floor(Math.random() * 900) + 100; n2 = Math.floor(Math.random() * 90) + 10;
+        const d10=Math.floor(n2/10), d1=n2%10, p1=n1*d1, p2=n1*d10, total=n1*n2;
+        
         steps = [
-            {id:'p1_1', ans:p1%10, h:[4,10]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[3,10]}, {id:'p1_100', ans:Math.floor(p1/100)%10, h:[2,10]}, {id:'p1_1000', ans:Math.floor(p1/1000)||0, h:[2,10]},
-            {id:'p2_10', ans:p2%10, h:[4,9]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[3,9]}, {id:'p2_1000', ans:Math.floor(p2/100)%10, h:[2,9]}, {id:'p2_10000', ans:Math.floor(p2/1000)||0, h:[2,9]},
-            {id:'a1', ans:total%10, h:[16,22]}, {id:'a10', ans:Math.floor(total/10)%10, h:[15,21]}, {id:'a100', ans:Math.floor(total/100)%10, h:[14,20]}, {id:'a1000', ans:Math.floor(total/1000)%10, h:[13,19]}, {id:'a10000', ans:Math.floor(total/10000)||0, h:[12,18]}
+            {id:'p1_1', ans:p1%10, h:[4,10]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[3,10]}, {id:'p1_100', ans:Math.floor(p1/100)%10, h:[2,10]}, 
+            {id:'p1_1000', ans:Math.floor(p1/1000)||0, h:[2,10], skip:isLead0(Math.floor(p1/1000)||0, true)},
+            {id:'p2_10', ans:p2%10, h:[4,9]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[3,9]}, {id:'p2_1000', ans:Math.floor(p2/100)%10, h:[2,9]}, 
+            {id:'p2_10000', ans:Math.floor(p2/1000)||0, h:[2,9], skip:isLead0(Math.floor(p2/1000)||0, true)},
+            {id:'a1', ans:total%10, h:[16,22]}, {id:'a10', ans:Math.floor(total/10)%10, h:[15,21]}, {id:'a100', ans:Math.floor(total/100)%10, h:[14,20]}, {id:'a1000', ans:Math.floor(total/1000)%10, h:[13,19]}, 
+            {id:'a10000', ans:Math.floor(total/10000)||0, h:[12,18], skip:isLead0(Math.floor(total/10000)||0, true)}
         ];
     }
 
@@ -153,29 +154,28 @@
         let html = "";
         if (currentLevel === 4) {
             const s1=String(n1).padStart(3,' '), s2=String(n2).padStart(2,' ');
-            html = `<div class="cell op"></div><div class="cell op"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell">${s1[2]}</div><div class="cell op"></div>` +
-                   `<div class="cell op"></div><div class="cell op">×</div><div class="cell op"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell op"></div>` +
+            html = `<div class="cell"></div><div class="cell"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell">${s1[2]}</div><div class="cell"></div>` +
+                   `<div class="cell"></div><div class="cell">×</div><div class="cell"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell"></div>` +
                    `<div class="line w6"></div>` +
-                   `<div class="cell op"></div><div id="p1_1000" class="cell input"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell op"></div>` +
-                   `<div id="p2_10000" class="cell input"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell op"></div>` +
+                   `<div class="cell"></div><div id="p1_1000" class="cell input"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div>` +
+                   `<div id="p2_10000" class="cell input"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell"></div>` +
                    `<div class="line w6"></div>` +
-                   `<div id="a10000" class="cell input"></div><div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>`;
+                   `<div id="a10000" class="cell input"></div><div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell"></div>`;
         } else {
             const s1=String(n1).padStart(2,' '), s2=String(n2).padStart(2,' ');
-            html = `<div class="cell op"></div><div class="cell op"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell op"></div>` +
-                   `<div class="cell op">×</div><div class="cell op"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell op"></div>` +
+            html = `<div class="cell"></div><div class="cell"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell"></div>` +
+                   `<div class="cell">×</div><div class="cell"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell"></div>` +
                    `<div class="line w5"></div>` +
-                   `<div class="cell op"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell op"></div>` +
-                   `<div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell op"></div>` +
+                   `<div class="cell"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div>` +
+                   `<div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell"></div>` +
                    `<div class="line w5"></div>` +
-                   `<div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>`;
+                   `<div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell"></div>`;
         }
         b.innerHTML = html;
         document.querySelectorAll('.cell.input').forEach(el => {
             const span = document.createElement('span'); span.className = 'num-display'; el.appendChild(span);
             const canvas = document.createElement('canvas'); canvas.className = 'memo-canvas'; canvas.width = 40; canvas.height = 40; el.appendChild(canvas);
             initDrawing(canvas, el);
-            el.onclick = (e) => { if(e.target === canvas) return; if(el.id === steps[cur].id) update(); };
         });
     }
 
@@ -184,82 +184,77 @@
         let drawing = false;
         const getPos = (e) => {
             const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: (cx - rect.left) * (canvas.width / rect.width), y: (cy - rect.top) * (canvas.height / rect.height) };
         };
         const start = (e) => { if(parent.id === steps[cur].id) update(); drawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); };
         const move = (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
-        const end = () => { drawing = false; };
-        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
-        canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', move, {passive: false}); canvas.addEventListener('touchend', end);
+        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', () => drawing=false);
+        canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', move, {passive: false}); canvas.addEventListener('touchend', () => drawing=false);
     }
 
     function numInput(v) {
-        const activeCell = document.getElementById(steps[cur].id);
-        if(!activeCell) return;
-        const span = activeCell.querySelector('.num-display');
-        if(v==='del') span.textContent = ""; else span.textContent = v;
+        const cell = document.getElementById(steps[cur].id);
+        if(cell) { const s = cell.querySelector('.num-display'); s.textContent = (v==='del' ? "" : v); }
     }
 
     function check() {
-        const s = steps[cur]; const activeCell = document.getElementById(s.id);
-        if(!activeCell) return;
-        const val = activeCell.querySelector('.num-display').textContent;
-        if(val !== "" && parseInt(val)===s.ans) {
-            activeCell.classList.remove('input','active'); activeCell.style.color="blue";
+        const s = steps[cur]; const cell = document.getElementById(s.id);
+        if(!cell) return;
+        if(cell.querySelector('.num-display').textContent !== "" && parseInt(cell.querySelector('.num-display').textContent) === s.ans) {
+            cell.classList.remove('input','active'); cell.style.color="blue";
             soundMagic.play(); cur++;
-            if(cur>=steps.length) gameClear();
-            else { checkAutoSkip(); if(cur>=steps.length) gameClear(); else update(); }
-        } else { activeCell.querySelector('.num-display').textContent = ""; }
+            checkAutoSkip(); // ★ アドバイスいただいた連続スキップ対応
+            if(cur >= steps.length) gameClear(); else update();
+        } else { cell.querySelector('.num-display').textContent = ""; }
     }
 
     function checkAutoSkip() {
-        while(cur < steps.length) {
-            const s = steps[cur];
-            if(s.ans === 0 && (s.id.endsWith('00') || s.id.endsWith('000') || s.id.endsWith('0000'))) {
-                const cell = document.getElementById(s.id);
-                if(cell) cell.classList.remove('input','active');
-                cur++;
-            } else break;
+        // ★ ID依存をやめ、データ内の skip フラグで判定
+        while (cur < steps.length && steps[cur].ans === 0 && steps[cur].skip) {
+            const skipCell = document.getElementById(steps[cur].id);
+            if (skipCell) {
+                skipCell.classList.remove('input','active');
+                skipCell.style.color = "blue";
+                skipCell.querySelector('.num-display').textContent = ""; 
+            }
+            cur++;
         }
     }
 
     function gameClear() {
-        let earn = [0,1,3,5,7][currentLevel];
-        totalGems += earn; localStorage.setItem('mathGems', totalGems);
-        updateStats(); document.getElementById('gemsDisplay').innerText = "💎".repeat(Math.min(earn, 7));
+        let earn = [0,1,3,5,7][currentLevel]; totalGems += earn;
+        localStorage.setItem('mathGems', totalGems); updateStats();
+        document.getElementById('gemsDisplay').innerText = "💎".repeat(Math.min(earn, 7));
         document.getElementById('clearOverlay').style.display='flex';
     }
 
     function updateStats() {
         document.getElementById('totalGemsCount').innerText = totalGems;
         let titleIdx = Math.min(Math.floor(totalGems / 10), titles.length - 1);
-        document.getElementById('currentTitle').innerText = totalGems < 10 ? "かけだし" : titles[titleIdx];
+        document.getElementById('currentTitle').innerText = titles[titleIdx];
     }
 
     function update() {
         document.querySelectorAll('.cell').forEach(c=>c.classList.remove('active','highlight'));
-        const activeCell = document.getElementById(steps[cur].id);
-        if(activeCell) activeCell.classList.add('active');
-        if(steps[cur]) {
+        if(cur < steps.length) {
+            const active = document.getElementById(steps[cur].id);
+            if(active) active.classList.add('active');
             steps[cur].h.forEach(idx => {
-                const target = document.querySelectorAll('.cell')[idx];
-                if(target) target.classList.add('highlight');
+                const t = document.querySelectorAll('.cell')[idx]; if(t) t.classList.add('highlight');
             });
         }
     }
 
     function showHint() {
-        if(!steps[cur]) return;
-        steps[cur].h.forEach(idx => {
+        if(steps[cur]) steps[cur].h.forEach(idx => {
             const el = document.querySelectorAll('.cell')[idx];
-            if(el) el.animate([{background:'#fff59d'}, {background:'#ffeb3b'}, {background:'#fff59d'}], {duration: 400, iterations: 2});
+            if(el) el.animate([{background:'#fff59d'}, {background:'#ffeb3b'}, {background:'#fff59d'}], 400);
         });
     }
 
-    function clearAllMemos() { document.querySelectorAll('.memo-canvas').forEach(canvas => canvas.getContext('2d').clearRect(0, 0, 40, 40)); }
-
+    function clearAllMemos() { document.querySelectorAll('.memo-canvas').forEach(c => c.getContext('2d').clearRect(0,0,40,40)); }
     updateStats();
 </script>
 </body>
