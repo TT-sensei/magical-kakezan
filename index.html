@@ -20,8 +20,14 @@
         .board { display: inline-grid; grid-template-columns: repeat(5, 50px); gap: 2px; background: #fff; padding: 15px; border-radius: 15px; border: 3px solid #ddd; margin-bottom: 15px; }
         .cell { width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; font-size: 28px; position: relative; border-radius: 5px; }
         
-        /* メモ欄のスタイル */
-        .memo { position: absolute; top: 2px; right: 4px; font-size: 14px; color: #ff5722; font-weight: bold; pointer-events: none; }
+        /* メモ専用マスのスタイル */
+        .memo-cell {
+            position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+            width: 24px; height: 24px; font-size: 16px; color: #ff5722;
+            background: #fff; border: 1px solid #ffccbc; border-radius: 4px;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+        }
+        .memo-cell.active { border: 2px solid #ff5722; background: #fff3e0; }
 
         .cell.highlight { background: #fff59d; border: 3px solid var(--secondary); animation: pulse 1s infinite alternate; z-index: 2; }
         @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
@@ -34,7 +40,7 @@
         .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .key { padding: 12px; font-size: 22px; border: none; border-radius: 12px; background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); }
         .key.del { background: #f44336; }
-        .key.memo-mode { background: #9c27b0; font-size: 16px; }
+        .key.ok { background: var(--primary); grid-column: span 2; }
 
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 15px; z-index: 100; }
     </style>
@@ -47,16 +53,15 @@
         <div class="title-display">称号: <span id="currentTitle">かけだし</span></div>
     </div>
 
-    <div id="piko" style="height:25px; margin-bottom:10px; color:var(--primary); font-size: 14px;">数字をタップして入力！</div>
+    <div id="piko" style="height:25px; margin-bottom:25px; color:var(--primary); font-size: 14px;">上の四角はメモだよ！</div>
     
     <div class="board" id="board"></div>
 
     <div class="keyboard">
-        <button class="key" onclick="input(1)">1</button><button class="key" onclick="input(2)">2</button><button class="key" onclick="input(3)">3</button>
-        <button class="key" onclick="input(4)">4</button><button class="key" onclick="input(5)">5</button><button class="key" onclick="input(6)">6</button>
-        <button class="key" onclick="input(7)">7</button><button class="key" onclick="input(8)">8</button><button class="key" onclick="input(9)">9</button>
-        <button class="key del" onclick="input('del')">↩</button><button class="key" onclick="input(0)">0</button><button class="key" onclick="check()">OK!</button>
-        <button class="key memo-mode" id="memoBtn" onclick="toggleMemoMode()" style="grid-column: span 3;">✎ くり上がりメモを入力する</button>
+        <button class="key" onclick="numInput(1)">1</button><button class="key" onclick="numInput(2)">2</button><button class="key" onclick="numInput(3)">3</button>
+        <button class="key" onclick="numInput(4)">4</button><button class="key" onclick="numInput(5)">5</button><button class="key" onclick="numInput(6)">6</button>
+        <button class="key" onclick="numInput(7)">7</button><button class="key" onclick="numInput(8)">8</button><button class="key" onclick="numInput(9)">9</button>
+        <button class="key del" onclick="numInput('del')">↩</button><button class="key" onclick="numInput(0)">0</button><button class="key ok" onclick="check()">OK!</button>
     </div>
 
     <div class="overlay" id="clearOverlay">
@@ -68,7 +73,7 @@
 
 <script>
     const titles = ["魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士", "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】", "炎の術師", "水の魔導士", "風の旅人", "大地の守護者", "雷鳴の使い手", "氷結の魔導師", "光の導き手", "闇を払う者", "精霊との契約者", "【エリート魔導師】", "古代文字の解読者", "秘宝の探索者", "幻獣の友", "錬金術の達人", "時空の旅人", "異世界の案内人", "魔力回路の天才", "伝説の語り部", "禁忌の魔法使い", "【大魔導師】", "賢者の弟子", "真理の追究者", "浮遊島の主", "龍の騎士", "運命の操作者", "神話の生き残り", "聖域の守護聖人", "宇宙の観測者", "多次元の覇者", "【大賢者】", "神の代行者", "創造の魔法使い", "永遠を生きる者", "銀河の調停者", "魔法界の王", "全知全能の萌芽", "神話の創造主", "次元を超えし存在", "魔法の根源", "【筆算の神】"];
-    let level=1, n1, n2, steps=[], cur=0, isMemoMode = false;
+    let n1, n2, steps=[], cur=0, focusOnMemo = false;
     let totalGems = parseInt(localStorage.getItem('mathGems')) || 0;
     const soundMagic = new Audio('https://actions.google.com/sounds/v1/cartoon/glissando.ogg');
     const soundClear = new Audio('https://actions.google.com/sounds/v1/cartoon/positive_musical_chip.ogg');
@@ -80,16 +85,9 @@
         document.getElementById('currentTitle').innerText = totalGems < 10 ? "かけだし" : titles[titleIdx - 1];
     }
 
-    function toggleMemoMode() {
-        isMemoMode = !isMemoMode;
-        const btn = document.getElementById('memoBtn');
-        btn.style.background = isMemoMode ? "#ff5722" : "#9c27b0";
-        btn.innerText = isMemoMode ? "✍ メモ入力中（もう一度押すと戻る）" : "✎ くり上がりメモを入力する";
-    }
-
     function initGame() {
         document.getElementById('clearOverlay').style.display='none';
-        isMemoMode = false;
+        focusOnMemo = false;
         updateStats();
         n1 = Math.floor(Math.random()*80)+12;
         n2 = Math.floor(Math.random()*80)+12;
@@ -116,51 +114,79 @@
             <div class="line"></div>
             <div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>
         `;
-        // 全ての入力セルにメモ用要素を追加
         document.querySelectorAll('.cell.input').forEach(el => {
             const m = document.createElement('div');
-            m.className = 'memo';
+            m.className = 'memo-cell';
+            m.onclick = (e) => {
+                e.stopPropagation();
+                setFocus(el.id, true);
+            };
             el.appendChild(m);
+            el.onclick = () => setFocus(el.id, false);
         });
+    }
+
+    function setFocus(id, isMemo) {
+        // 現在のステップと一致している場合のみフォーカス可能
+        if(id !== steps[cur].id) return;
+        focusOnMemo = isMemo;
+        update();
     }
 
     function update() {
         const cells = document.querySelectorAll('.cell');
-        cells.forEach(c=>c.classList.remove('active','highlight'));
+        cells.forEach(c=>{
+            c.classList.remove('active','highlight');
+            const m = c.querySelector('.memo-cell');
+            if(m) m.classList.remove('active');
+        });
+
         const s = steps[cur];
-        const active = document.getElementById(s.id);
-        if(active) active.classList.add('active');
+        const activeCell = document.getElementById(s.id);
+        if(activeCell) {
+            if(focusOnMemo) {
+                activeCell.querySelector('.memo-cell').classList.add('active');
+            } else {
+                activeCell.classList.add('active');
+            }
+        }
         s.h.forEach(idx => { if(cells[idx]) cells[idx].classList.add('highlight'); });
     }
 
-    function input(v) {
-        const active = document.getElementById(steps[cur].id);
-        if(!active) return;
-        const memoEl = active.querySelector('.memo');
+    function numInput(v) {
+        const activeCell = document.getElementById(steps[cur].id);
+        if(!activeCell) return;
 
-        if(isMemoMode) {
-            if(v==='del') memoEl.innerText = "";
-            else memoEl.innerText = v;
+        if(focusOnMemo) {
+            const memo = activeCell.querySelector('.memo-cell');
+            memo.innerText = (v === 'del') ? "" : v;
         } else {
-            if(v==='del') active.childNodes[0].textContent = "";
-            else active.childNodes[0].textContent = v;
+            // メインの数字入力（childNodes[0]にテキスト、[1]にメモ要素がある想定）
+            if(v === 'del') activeCell.childNodes[0].textContent = "";
+            else activeCell.childNodes[0].textContent = v;
         }
     }
 
     function check() {
         const s = steps[cur];
-        const active = document.getElementById(s.id);
-        const val = active.childNodes[0].textContent;
+        const activeCell = document.getElementById(s.id);
+        const val = activeCell.childNodes[0].textContent;
         if(val !== "" && parseInt(val)===s.ans) {
-            active.classList.remove('input'); active.style.color="blue";
+            activeCell.classList.remove('input'); 
+            activeCell.style.color="blue";
+            activeCell.onclick = null;
+            const m = activeCell.querySelector('.memo-cell');
+            if(m) { m.onclick = null; m.style.border = "none"; m.style.background = "transparent"; }
+            
             soundMagic.currentTime = 0; soundMagic.play();
             cur++;
+            focusOnMemo = false;
             if(cur>=steps.length) gameClear();
             else update();
         } else {
-            active.childNodes[0].textContent = "";
+            activeCell.childNodes[0].textContent = "";
             document.getElementById('piko').innerText="ちがうよ！もういちど！";
-            setTimeout(()=>document.getElementById('piko').innerText="数字をタップして入力！", 1000);
+            setTimeout(()=>document.getElementById('piko').innerText="上の四角はメモだよ！", 1000);
         }
     }
 
