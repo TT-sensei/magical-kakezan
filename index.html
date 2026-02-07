@@ -22,133 +22,77 @@
             background: white; border-radius: 20px; padding: 15px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; 
             width: 100%; max-width: 450px; border: 5px solid var(--primary); 
-            position: relative; z-index: 10; margin-top: 5px;
+            position: relative; margin-top: 5px;
         }
         
-        .stats-area { margin-bottom: 8px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .total-gems { color: #fbc02d; font-weight: bold; font-size: 18px; }
-        .title-display { color: #e91e63; font-size: 14px; font-weight: bold; background: #fff9f0; padding: 4px 12px; border-radius: 20px; border: 1px solid #ffe0b2; }
-
         .board { 
             display: inline-grid; grid-template-columns: repeat(5, 1fr); 
-            gap: 2px; background: #fff; padding: 25px 10px 10px; 
+            gap: 4px; background: #fff; padding: 10px; 
             border-radius: 15px; border: 3px solid #ddd; margin-bottom: 10px; 
             position: relative; width: 100%;
         }
-        .cell { aspect-ratio: 1/1; display: flex; justify-content: center; align-items: center; font-size: min(7vw, 28px); position: relative; border-radius: 5px; }
+        .cell { aspect-ratio: 1/1; display: flex; justify-content: center; align-items: center; font-size: min(8vw, 32px); position: relative; border-radius: 5px; }
         
-        /* メモキャンバスの修正: pointer-events: noneをデフォルトにし、描画時のみ有効化 */
+        /* 数字表示用の器 */
+        .num-display { position: relative; z-index: 2; pointer-events: none; }
+
+        /* 手書きメモ用（マスの左上に小さく配置） */
         .memo-canvas {
-            position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
-            width: 32px; height: 32px; background: rgba(255,255,255,0.7); 
+            position: absolute; top: 2px; left: 2px;
+            width: 30px; height: 30px; background: rgba(255,255,255,0.6); 
             border: 1px solid #ffccbc; border-radius: 4px; z-index: 10; touch-action: none;
         }
 
         .cell.input { background: #e3f2fd; border: 2px dashed var(--accent); cursor: pointer; }
-        .cell.active { border: 3px solid #ff5722 !important; background: #fff; box-shadow: 0 0 10px rgba(255,87,34,0.5); z-index: 5; }
+        .cell.active { border: 4px solid #ff5722 !important; background: #fff; box-shadow: 0 0 10px rgba(255,87,34,0.5); }
         .cell.highlight { background: #fff59d; }
         .line { grid-column: 1 / 6; height: 4px; background: #444; margin: 4px 0; border-radius: 2px; }
 
         .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
         .key { 
-            padding: 12px 0; font-size: 20px; border: none; border-radius: 12px; 
+            padding: 15px 0; font-size: 22px; border: none; border-radius: 12px; 
             background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); 
-            box-shadow: 0 4px 0 #1976D2; transition: 0.1s; position: relative; z-index: 20;
+            box-shadow: 0 4px 0 #1976D2; transition: 0.1s;
         }
         .key:active { transform: translateY(2px); box-shadow: 0 2px 0 #1976D2; }
         .key.del { background: #f44336; box-shadow: 0 4px 0 #d32f2f; }
         .key.hint { background: #9c27b0; box-shadow: 0 4px 0 #7b1fa2; font-size: 14px; }
-        .key.ok { background: var(--primary); box-shadow: 0 4px 0 #388E3C; grid-column: span 2; font-size: 22px; }
-
-        #combo-text { position: absolute; top: -45px; right: 0; color: #ff5722; font-size: 18px; font-weight: bold; opacity: 0; pointer-events: none; }
-        .combo-ani { animation: comboPop 0.5s ease-out; }
-        @keyframes comboPop { 0% { opacity: 0; transform: translateY(10px); } 50% { opacity: 1; transform: translateY(-5px); } 100% { opacity: 0; transform: translateY(-10px); } }
+        .key.ok { background: var(--primary); box-shadow: 0 4px 0 #388E3C; grid-column: span 2; font-size: 24px; }
 
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 15px; z-index: 100; }
-        .confetti { position: fixed; width: 8px; height: 8px; z-index: 1000; pointer-events: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="stats-area">
-        <div class="total-gems">💎 宝石: <span id="totalGemsCount">0</span></div>
-        <div id="title-box" class="title-display">称号: <span id="currentTitle">かけだし</span></div>
-    </div>
-
-    <div id="piko" style="height:20px; margin-bottom:10px; color:var(--primary); font-size:13px;">数字をうつ or メモをかく！</div>
+    <div id="piko" style="margin-bottom:10px; color:var(--primary); font-size:14px;">マスをえらんで、数字をうとう！</div>
     
-    <div class="board" id="board">
-        <div id="combo-text"></div>
-    </div>
+    <div class="board" id="board"></div>
 
     <div class="keyboard">
-        <button class="key" onmousedown="numInput(1)" ontouchstart="numInput(1)">1</button>
-        <button class="key" onmousedown="numInput(2)" ontouchstart="numInput(2)">2</button>
-        <button class="key" onmousedown="numInput(3)" ontouchstart="numInput(3)">3</button>
-        <button class="key" onmousedown="numInput(4)" ontouchstart="numInput(4)">4</button>
-        <button class="key" onmousedown="numInput(5)" ontouchstart="numInput(5)">5</button>
-        <button class="key" onmousedown="numInput(6)" ontouchstart="numInput(6)">6</button>
-        <button class="key" onmousedown="numInput(7)" ontouchstart="numInput(7)">7</button>
-        <button class="key" onmousedown="numInput(8)" ontouchstart="numInput(8)">8</button>
-        <button class="key" onmousedown="numInput(9)" ontouchstart="numInput(9)">9</button>
-        <button class="key del" onmousedown="numInput('del')" ontouchstart="numInput('del')">↩</button>
-        <button class="key" onmousedown="numInput(0)" ontouchstart="numInput(0)">0</button>
-        <button class="key hint" onmousedown="showHint()" ontouchstart="showHint()">💡ﾋﾝﾄ</button>
-        <button class="key ok" onmousedown="check()" ontouchstart="check()">OK!</button>
+        <button class="key" onclick="numInput(1)">1</button><button class="key" onclick="numInput(2)">2</button><button class="key" onclick="numInput(3)">3</button>
+        <button class="key" onclick="numInput(4)">4</button><button class="key" onclick="numInput(5)">5</button><button class="key" onclick="numInput(6)">6</button>
+        <button class="key" onclick="numInput(7)">7</button><button class="key" onclick="numInput(8)">8</button><button class="key" onclick="numInput(9)">9</button>
+        <button class="key del" onclick="numInput('del')">↩</button><button class="key" onclick="numInput(0)">0</button><button class="key hint" onclick="showHint()">💡ﾋﾝﾄ</button>
+        <button class="key ok" onclick="check()">OK!</button>
     </div>
 
     <div style="margin-top:10px;">
-        <button onclick="clearAllMemos()" style="background:none; border:1px solid #ccc; font-size:10px; color:#999; border-radius:5px; padding:3px 10px;">メモ消去</button>
+        <button onclick="clearAllMemos()" style="background:none; border:1px solid #ccc; font-size:10px; color:#999; border-radius:5px; padding:5px 10px;">メモをけす</button>
     </div>
 
     <div class="overlay" id="clearOverlay">
         <h2 style="font-size:30px;">合格！💎</h2>
-        <div id="gems" style="font-size:40px; margin-bottom:20px;"></div>
         <button class="key" style="width:120px" onclick="initGame()">次へ</button>
     </div>
 </div>
 
 <script>
-    const titles = ["魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士", "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】", "炎の術師", "水の魔導士", "風の旅人", "大地の守護者", "雷鳴の使い手", "氷結の魔導師", "光の導き手", "闇を払う者", "精霊との契約者", "【エリート魔導師】", "古代文字の解読者", "秘宝の探索者", "幻獣の友", "錬金術の達人", "時空の旅人", "異世界の案内人", "魔力回路の天才", "伝説の語り部", "禁忌の魔法使い", "【大魔導師】", "賢者の弟子", "真理の追究者", "浮遊島の主", "龍の騎士", "運命の操作者", "神話の生き残り", "聖域の守護聖人", "宇宙の観測者", "多次元の覇者", "【大賢者】", "神の代行者", "創造の魔法使い", "永遠を生きる者", "銀河の調停者", "魔法界の王", "全知全能の萌芽", "神話の創造主", "次元を超えし存在", "魔法の根源", "【筆算の神】"];
-    let n1, n2, steps=[], cur=0, combo = 0;
-    let totalGems = parseInt(localStorage.getItem('mathGems')) || 0;
+    let n1, n2, steps=[], cur=0;
     const soundMagic = new Audio('https://actions.google.com/sounds/v1/cartoon/glissando.ogg');
-    const soundClear = new Audio('https://actions.google.com/sounds/v1/cartoon/positive_musical_chip.ogg');
-    const soundHint = new Audio('https://actions.google.com/sounds/v1/cartoon/clink_glasses.ogg');
-
-    function updateStats(isInitial = false) {
-        document.getElementById('totalGemsCount').innerText = totalGems;
-        let titleIdx = Math.floor(totalGems / 10);
-        if (titleIdx >= titles.length) titleIdx = titles.length - 1;
-        document.getElementById('currentTitle').innerText = totalGems < 10 ? "かけだし" : titles[titleIdx - 1];
-    }
-
-    function createConfetti() {
-        for(let i=0; i<30; i++) {
-            const c = document.createElement('div');
-            c.className = 'confetti';
-            c.style.left = Math.random() * 100 + 'vw';
-            c.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
-            document.body.appendChild(c);
-            c.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: `translateY(100vh) translateX(${Math.random()*100-50}px)`, opacity: 0 }], { duration: 2000 });
-            setTimeout(() => c.remove(), 2000);
-        }
-    }
-
-    function showHint() {
-        soundHint.play();
-        const s = steps[cur];
-        const cells = document.querySelectorAll('.cell');
-        s.h.forEach(idx => {
-            cells[idx].classList.add('hint-flash');
-            setTimeout(() => cells[idx].classList.remove('hint-flash'), 800);
-        });
-    }
 
     function initGame() {
         document.getElementById('clearOverlay').style.display='none';
-        combo = 0; updateStats(true);
         n1 = Math.floor(Math.random()*80)+12;
         n2 = Math.floor(Math.random()*80)+12;
         const d3=Math.floor(n2/10), d4=n2%10;
@@ -160,14 +104,25 @@
     function render() {
         const b = document.getElementById('board');
         const s1=String(n1).padStart(2,' '), s2=String(n2).padStart(2,' ');
-        b.innerHTML = `<div id="combo-text"></div><div class="cell op"></div><div class="cell op"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell op"></div><div class="cell op">×</div><div class="cell op"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell op"></div><div class="line"></div><div class="cell op"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell op"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell op"></div><div class="line"></div><div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>`;
+        b.innerHTML = `<div class="cell op"></div><div class="cell op"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell op"></div><div class="cell op">×</div><div class="cell op"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell op"></div><div class="line"></div><div class="cell op"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell op"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell op"></div><div class="line"></div><div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>`;
         
         document.querySelectorAll('.cell.input').forEach(el => {
+            // 数字表示用のspanを作成
+            const span = document.createElement('span');
+            span.className = 'num-display';
+            el.appendChild(span);
+
+            // メモ用キャンバスを作成
             const canvas = document.createElement('canvas');
             canvas.className = 'memo-canvas';
             canvas.width = 40; canvas.height = 40;
             el.appendChild(canvas);
+
             initDrawing(canvas, el);
+            el.onclick = (e) => { 
+                if(e.target === canvas) return; // キャンバス操作時は選択を邪魔しない
+                if(el.id === steps[cur].id) update(); 
+            };
         });
     }
 
@@ -175,79 +130,51 @@
         const ctx = canvas.getContext('2d');
         ctx.strokeStyle = '#ff5722'; ctx.lineWidth = 3; ctx.lineCap = 'round';
         let drawing = false;
-
         const getPos = (e) => {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
         };
-
         const start = (e) => { 
-            // マス全体を選択状態にする
             if(parent.id === steps[cur].id) update();
-            drawing = true; ctx.beginPath(); 
-            const p = getPos(e); ctx.moveTo(p.x, p.y);
+            drawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y);
         };
-        const move = (e) => { 
-            if(!drawing) return; 
-            e.preventDefault(); 
-            const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); 
-        };
+        const move = (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
         const end = () => { drawing = false; };
-
-        canvas.addEventListener('mousedown', start);
-        canvas.addEventListener('mousemove', move);
-        window.addEventListener('mouseup', end);
-        canvas.addEventListener('touchstart', start, {passive: false});
-        canvas.addEventListener('touchmove', move, {passive: false});
-        canvas.addEventListener('touchend', end);
+        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
+        canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', move, {passive: false}); canvas.addEventListener('touchend', end);
     }
 
-    function clearAllMemos() {
-        document.querySelectorAll('.memo-canvas').forEach(canvas => canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height));
+    function numInput(v) {
+        const activeCell = document.getElementById(steps[cur].id);
+        if(!activeCell) return;
+        const numSpan = activeCell.querySelector('.num-display');
+        if(v==='del') numSpan.textContent = "";
+        else numSpan.textContent = v;
+    }
+
+    function check() {
+        const s = steps[cur]; const activeCell = document.getElementById(s.id);
+        const val = activeCell.querySelector('.num-display').textContent;
+        if(val !== "" && parseInt(val)===s.ans) {
+            activeCell.classList.remove('input','active'); activeCell.style.color="blue";
+            soundMagic.play();
+            cur++;
+            if(cur>=steps.length) document.getElementById('clearOverlay').style.display='flex';
+            else update();
+        }
     }
 
     function update() {
         document.querySelectorAll('.cell').forEach(c=>c.classList.remove('active','highlight'));
         const activeCell = document.getElementById(steps[cur].id);
         if(activeCell) activeCell.classList.add('active');
-        steps[cur].h.forEach(idx => { 
-            const target = document.querySelectorAll('.cell')[idx];
-            if(target) target.classList.add('highlight'); 
-        });
+        steps[cur].h.forEach(idx => document.querySelectorAll('.cell')[idx]?.classList.add('highlight'));
     }
 
-    function numInput(v) {
-        const activeCell = document.getElementById(steps[cur].id);
-        if(!activeCell) return;
-        if(v==='del') activeCell.childNodes[0].textContent = "";
-        else activeCell.childNodes[0].textContent = v;
-    }
-
-    function check() {
-        const s = steps[cur]; const activeCell = document.getElementById(s.id);
-        if(!activeCell) return;
-        const val = activeCell.childNodes[0].textContent;
-        if(val !== "" && parseInt(val)===s.ans) {
-            combo++;
-            const t = document.getElementById('combo-text');
-            t.innerText = combo + " コンボ！🔥";
-            t.classList.remove('combo-ani'); void t.offsetWidth; t.classList.add('combo-ani');
-
-            activeCell.classList.remove('input','active'); activeCell.style.color="blue";
-            soundMagic.currentTime = 0; soundMagic.play();
-            cur++;
-            if(cur>=steps.length) {
-                totalGems += 5; localStorage.setItem('mathGems', totalGems);
-                updateStats(); soundClear.play();
-                document.getElementById('gems').innerText = "💎💎💎💎💎";
-                document.getElementById('clearOverlay').style.display='flex';
-                createConfetti();
-            } else update();
-        } else {
-            combo = 0; activeCell.childNodes[0].textContent = "";
-        }
+    function clearAllMemos() {
+        document.querySelectorAll('.memo-canvas').forEach(canvas => canvas.getContext('2d').clearRect(0, 0, 40, 40));
     }
 
     initGame();
