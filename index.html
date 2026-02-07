@@ -3,94 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>筆算道場 - 確定版</title>
+    <title>魔法の筆算道場 - 伝説の3桁(修正版)</title>
     <style>
-        :root { --bg: #f0f4f8; --text: #334155; }
+        @import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap');
+        :root {
+            --primary: #4CAF50; --secondary: #FFC107; --accent: #2196F3;
+            --bg: #f0f4f8; --font-family: 'Mochiy Pop P One', cursive;
+        }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         body { 
-            font-family: sans-serif; background: var(--bg); 
-            display: flex; justify-content: center; padding: 10px; margin: 0;
+            font-family: var(--font-family); background: var(--bg); 
+            display: flex; justify-content: center; align-items: flex-start; 
+            min-height: 100vh; margin: 0; padding: 10px; overflow-x: hidden;
         }
+
         .container { 
-            background: white; border-radius: 15px; padding: 15px; 
-            width: 100%; max-width: 450px; border: 3px solid #334155; 
-            position: relative; margin-top: 40px; text-align: center;
+            background: white; border-radius: 20px; padding: 10px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; 
+            width: 100%; max-width: 500px; border: 5px solid var(--primary); 
+            position: relative;
         }
-        .piko-container { position: absolute; top: -50px; right: 10px; display: flex; align-items: center; }
-        .piko-balloon { background: #334155; color: white; padding: 4px 8px; border-radius: 8px; font-size: 12px; margin-right: 5px; }
-        .piko-body { font-size: 40px; }
 
-        .menu-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #334155; z-index: 200; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; }
-        .level-card { width: 80%; padding: 12px; margin: 5px; border: 1px solid white; border-radius: 8px; cursor: pointer; }
+        .stats-area { margin-bottom: 5px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .total-gems { color: #fbc02d; font-weight: bold; font-size: 16px; }
+        .title-display { color: #e91e63; font-size: 13px; font-weight: bold; background: #fff9f0; padding: 2px 10px; border-radius: 20px; border: 1px solid #ffe0b2; }
+        
+        .menu-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 200; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px; }
+        .level-btn { width: 90%; padding: 12px; margin: 6px; border: none; border-radius: 12px; font-family: var(--font-family); font-size: 16px; color: white; cursor: pointer; transition: 0.1s; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
+        .lv1 { background: #8bc34a; } .lv2 { background: #ff9800; } .lv3 { background: #f44336; } .lv4 { background: #9c27b0; }
+        .level-btn:active { transform: translateY(2px); box-shadow: none; }
 
-        .board { display: inline-grid; gap: 2px; background: white; padding: 10px; border: 2px solid #334155; margin-bottom: 10px; width: 100%; }
+        .board { 
+            display: inline-grid; 
+            gap: 4px; background: #fff; padding: 20px 8px 8px; 
+            border-radius: 15px; border: 3px solid #ddd; margin-bottom: 10px; 
+            position: relative; width: 100%;
+        }
         .board.col5 { grid-template-columns: repeat(5, 1fr); }
         .board.col6 { grid-template-columns: repeat(6, 1fr); }
-        .cell { aspect-ratio: 1/1; display: flex; justify-content: center; align-items: center; font-size: 28px; font-weight: bold; position: relative; }
-        .cell.input { background: #f1f5f9; border: 1px solid #94a3b8; border-radius: 4px; }
-        .cell.active { border: 3px solid #ef4444 !important; background: #fff; }
-        .cell.highlight { background: #fef08a !important; }
-        .line { height: 2px; background: #333; margin: 2px 0; }
-        .memo-canvas { position: absolute; top: -12px; left: 0; width: 24px; height: 24px; background: rgba(255,255,255,0.8); border: 1px solid #94a3b8; border-radius: 3px; z-index: 10; cursor: crosshair; }
 
-        .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-        .key { padding: 15px 0; font-size: 20px; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 8px; background: white; box-shadow: 0 2px 0 #cbd5e1; }
-        .key:active { transform: translateY(2px); box-shadow: none; }
-        .key.ok { background: #334155; color: white; grid-column: span 2; }
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; color: white; z-index: 100; border-radius: 12px; }
+        .cell { aspect-ratio: 1/1; display: flex; justify-content: center; align-items: center; font-size: min(7vw, 28px); position: relative; border-radius: 5px; }
+        .num-display { position: relative; z-index: 2; pointer-events: none; }
+        .memo-canvas { position: absolute; top: -16px; left: 0; width: 28px; height: 28px; background: rgba(255,255,255,0.7); border: 1px solid #ffccbc; border-radius: 4px; z-index: 10; touch-action: none; }
+
+        .cell.input { background: #e3f2fd; border: 2px dashed var(--accent); }
+        .cell.active { border: 3px solid #ff5722 !important; background: #fff; box-shadow: 0 0 8px rgba(255,87,34,0.5); }
+        .cell.highlight { background: #fff59d !important; }
+        .line { height: 4px; background: #444; margin: 4px 0; border-radius: 2px; }
+        .line.w5 { grid-column: 1 / 6; }
+        .line.w6 { grid-column: 1 / 7; }
+
+        .keyboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; }
+        .key { padding: 12px 0; font-size: 20px; border: none; border-radius: 10px; background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); box-shadow: 0 4px 0 #1976D2; }
+        .key:active { transform: translateY(2px); box-shadow: 0 2px 0 #1976D2; }
+        .key.ok { background: var(--primary); box-shadow: 0 4px 0 #388E3C; grid-column: span 2; }
+
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 15px; z-index: 100; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="piko-container"><div class="piko-balloon" id="pikoTalk">いくよ！</div><div class="piko-body">🦉</div></div>
-    
     <div id="levelMenu" class="menu-overlay">
-        <h2>筆算道場</h2>
-        <div class="level-card" onclick="startLevel(1)">LV1: 2×2 (1-4)</div>
-        <div class="level-card" onclick="startLevel(2)">LV2: 2×2 (1-9)</div>
-        <div class="level-card" onclick="startLevel(3)">LV3: 2×2 (0あり)</div>
-        <div class="level-card" onclick="startLevel(4)">LV4: 3×2</div>
+        <h2 style="color:var(--primary);">修行を選べ！</h2>
+        <button class="level-btn lv1" onclick="startLevel(1)">Lv1 (💎1) 2×2: 1〜4のみ</button>
+        <button class="level-btn lv2" onclick="startLevel(2)">Lv2 (💎3) 2×2: 1〜9</button>
+        <button class="level-btn lv3" onclick="startLevel(3)">Lv3 (💎5) 2×2: 0〜9</button>
+        <button class="level-btn lv4" onclick="startLevel(4)">Lv4 (💎7) 3×2: 伝説の挑戦</button>
     </div>
 
-    <div id="stats" style="margin-bottom:5px; font-size:14px;">💎 <span id="totalGemsCount">0</span></div>
-    <div class="board" id="board"></div>
+    <div class="stats-area">
+        <div class="total-gems">💎 宝石: <span id="totalGemsCount">0</span></div>
+        <div id="title-box" class="title-display">称号: <span id="currentTitle">かけだし</span></div>
+    </div>
+    
+    <div id="piko" style="margin-bottom:8px; color:var(--primary); font-size:12px;">修行開始！</div>
+    
+    <div class="board col5" id="board"></div>
 
     <div class="keyboard">
         <button class="key" onclick="numInput(1)">1</button><button class="key" onclick="numInput(2)">2</button><button class="key" onclick="numInput(3)">3</button>
         <button class="key" onclick="numInput(4)">4</button><button class="key" onclick="numInput(5)">5</button><button class="key" onclick="numInput(6)">6</button>
         <button class="key" onclick="numInput(7)">7</button><button class="key" onclick="numInput(8)">8</button><button class="key" onclick="numInput(9)">9</button>
-        <button class="key" onclick="numInput('del')">消</button><button class="key" onclick="numInput(0)">0</button><button class="key" onclick="showHint()">灯</button>
-        <button class="key ok" onclick="check()">OK</button>
+        <button class="key" style="background:#f44336" onclick="numInput('del')">↩</button><button class="key" onclick="numInput(0)">0</button><button class="key" style="background:#9c27b0" onclick="showHint()">💡</button>
+        <button class="key ok" onclick="check()">OK!</button>
     </div>
 
-    <button onclick="backToMenu()" style="margin-top:10px; background:none; border:none; color:#64748b; text-decoration:underline;">レベル選択に戻る</button>
+    <div style="margin-top:10px; display: flex; justify-content: center; gap: 10px;">
+        <button onclick="clearAllMemos()" style="font-size:10px; color:#999;">メモ消去</button>
+        <button onclick="backToMenu()" style="font-size:10px; color:#999;">レベル変更</button>
+    </div>
 
     <div class="overlay" id="clearOverlay">
-        <h2>CLEAR!</h2>
-        <button class="key ok" style="width:120px" onclick="initGame()">次へ</button>
+        <h2 id="clearMsg">合格！</h2>
+        <div id="gemsDisplay" style="font-size:30px; margin-bottom:15px;"></div>
+        <button class="key" style="width:100px" onclick="initGame()">次へ</button>
     </div>
 </div>
 
 <script>
-    let n1, n2, steps=[], cur=0, currentLevel=1, totalGems=parseInt(localStorage.getItem('mathGems'))||0;
+    const titles = ["魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士", "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】", "炎の術師", "水の魔導士", "風の旅人", "大地の守護者", "雷鳴の使い手", "氷結の魔導師", "光の導き手", "闇を払う者", "精霊との契約者", "【エリート魔導師】", "古代文字の解読者", "秘宝の探索者", "幻獣の友", "錬金術の達人", "時空の旅人", "異世界の案内人", "魔力回路の天才", "伝説の語り部", "禁忌の魔法使い", "【大魔導師】", "賢者の弟子", "真理の追究者", "浮遊島の主", "龍の騎士", "運命の操作者", "神話の生き残り", "聖域の守護聖人", "宇宙の観測者", "多次元の覇者", "【大賢者】", "神の代行者", "創造の魔法使い", "永遠を生きる者", "銀河の調停者", "魔法界の王", "全知全能の萌芽", "神話の創造主", "次元を超えし存在", "魔法の根源", "【筆算の神】"];
+    let n1, n2, steps=[], cur=0, currentLevel = 1, totalGems = parseInt(localStorage.getItem('mathGems')) || 0;
+    const soundMagic = new Audio('https://actions.google.com/sounds/v1/cartoon/glissando.ogg');
 
-    function startLevel(lv) { currentLevel=lv; document.getElementById('levelMenu').style.display='none'; initGame(); }
-    function backToMenu() { document.getElementById('levelMenu').style.display='flex'; }
+    function startLevel(lv) { currentLevel = lv; document.getElementById('levelMenu').style.display = 'none'; initGame(); }
+    function backToMenu() { document.getElementById('levelMenu').style.display = 'flex'; }
 
     function initGame() {
         document.getElementById('clearOverlay').style.display='none';
-        const b = document.getElementById('board');
-        b.innerHTML = "";
-        if(currentLevel===4) { b.className="board col6"; setup3x2(); } else { b.className="board col5"; setup2x2(); }
+        let b = document.getElementById('board');
+        if (currentLevel === 4) {
+            b.className = "board col6";
+            setup3x2();
+        } else {
+            b.className = "board col5";
+            setup2x2();
+        }
         render(); cur=0; checkAutoSkip(); update();
     }
 
     function setup2x2() {
-        let min=(currentLevel===1)?1:0; let max=(currentLevel===1)?4:9;
-        const gen=()=>Math.floor(Math.random()*(max-min+1))+min;
-        n1=(gen()||1)*10+gen(); n2=(gen()||1)*10+gen();
-        const d10=Math.floor(n2/10), d1=n2%10, p1=n1*d1, p2=n1*d10, total=n1*n2;
+        let min = (currentLevel === 1) ? 1 : 0;
+        let max = (currentLevel === 1) ? 4 : 9;
+        const gen = () => Math.floor(Math.random() * (max - min + 1)) + min;
+        n1 = (gen()||1)*10 + gen(); n2 = (gen()||1)*10 + gen();
+        const d3=Math.floor(n2/10), d4=n2%10, p1=n1*d4, p2=n1*d3, total=n1*n2;
         steps = [
             {id:'p1_1', ans:p1%10, h:[3,8]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[2,8]}, {id:'p1_100', ans:Math.floor(p1/100)||0, h:[2,8]},
             {id:'p2_10', ans:p2%10, h:[3,7]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[2,7]}, {id:'p2_1000', ans:Math.floor(p2/100)||0, h:[2,7]},
@@ -99,8 +137,10 @@
     }
 
     function setup3x2() {
-        n1=Math.floor(Math.random()*900)+100; n2=Math.floor(Math.random()*90)+10;
-        const d10=Math.floor(n2/10), d1=n2%10, p1=n1*d1, p2=n1*d10, total=n1*n2;
+        n1 = Math.floor(Math.random() * 900) + 100;
+        n2 = Math.floor(Math.random() * 90) + 10;
+        const d1=Math.floor(n2/10), d2=n2%10, p1=n1*d2, p2=n1*d1, total=n1*n2;
+        // 修正：6列盤面のインデックスに合わせてハイライト位置を調整
         steps = [
             {id:'p1_1', ans:p1%10, h:[4,10]}, {id:'p1_10', ans:Math.floor(p1/10)%10, h:[3,10]}, {id:'p1_100', ans:Math.floor(p1/100)%10, h:[2,10]}, {id:'p1_1000', ans:Math.floor(p1/1000)||0, h:[2,10]},
             {id:'p2_10', ans:p2%10, h:[4,9]}, {id:'p2_100', ans:Math.floor(p2/10)%10, h:[3,9]}, {id:'p2_1000', ans:Math.floor(p2/100)%10, h:[2,9]}, {id:'p2_10000', ans:Math.floor(p2/1000)||0, h:[2,9]},
@@ -109,85 +149,117 @@
     }
 
     function render() {
-        const b=document.getElementById('board'); let html="";
-        if(currentLevel===4) {
+        const b = document.getElementById('board');
+        let html = "";
+        if (currentLevel === 4) {
             const s1=String(n1).padStart(3,' '), s2=String(n2).padStart(2,' ');
-            html = `<div class="cell"></div><div class="cell"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell">${s1[2]}</div><div class="cell"></div>` +
-                   `<div class="cell"></div><div class="cell">×</div><div class="cell"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell"></div>` +
-                   `<div class="line" style="grid-column:1/7"></div>` +
-                   `<div class="cell"></div><div id="p1_1000" class="cell input"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div>` +
-                   `<div id="p2_10000" class="cell input"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell"></div>` +
-                   `<div class="line" style="grid-column:1/7"></div>` +
-                   `<div id="a10000" class="cell input"></div><div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell"></div>`;
+            html = `<div class="cell op"></div><div class="cell op"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell">${s1[2]}</div><div class="cell op"></div>` +
+                   `<div class="cell op"></div><div class="cell op">×</div><div class="cell op"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell op"></div>` +
+                   `<div class="line w6"></div>` +
+                   `<div class="cell op"></div><div id="p1_1000" class="cell input"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell op"></div>` +
+                   `<div id="p2_10000" class="cell input"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell op"></div>` +
+                   `<div class="line w6"></div>` +
+                   `<div id="a10000" class="cell input"></div><div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>`;
         } else {
             const s1=String(n1).padStart(2,' '), s2=String(n2).padStart(2,' ');
-            html = `<div class="cell"></div><div class="cell"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell"></div>` +
-                   `<div class="cell">×</div><div class="cell"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell"></div>` +
-                   `<div class="line" style="grid-column:1/6"></div>` +
-                   `<div class="cell"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div>` +
-                   `<div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell"></div>` +
-                   `<div class="line" style="grid-column:1/6"></div>` +
-                   `<div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell"></div>`;
+            html = `<div class="cell op"></div><div class="cell op"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell op"></div>` +
+                   `<div class="cell op">×</div><div class="cell op"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell op"></div>` +
+                   `<div class="line w5"></div>` +
+                   `<div class="cell op"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell op"></div>` +
+                   `<div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell" style="color:#ccc">0</div><div class="cell op"></div>` +
+                   `<div class="line w5"></div>` +
+                   `<div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell op"></div>`;
         }
-        b.innerHTML=html;
-        document.querySelectorAll('.cell.input').forEach(el=>{
-            const s=document.createElement('span'); el.appendChild(s);
-            const c=document.createElement('canvas'); c.className='memo-canvas'; c.width=40; c.height=40; el.appendChild(c);
-            initDraw(c, el);
+        b.innerHTML = html;
+        document.querySelectorAll('.cell.input').forEach(el => {
+            const span = document.createElement('span'); span.className = 'num-display'; el.appendChild(span);
+            const canvas = document.createElement('canvas'); canvas.className = 'memo-canvas'; canvas.width = 40; canvas.height = 40; el.appendChild(canvas);
+            initDrawing(canvas, el);
+            el.onclick = (e) => { if(e.target === canvas) return; if(el.id === steps[cur].id) update(); };
         });
     }
 
-    function initDraw(c, p) {
-        const ctx=c.getContext('2d'); ctx.strokeStyle='#ef4444'; ctx.lineWidth=4; ctx.lineCap='round';
-        let d=false;
-        const getP=(e)=>{
-            const r=c.getBoundingClientRect(); const cx=e.touches?e.touches[0].clientX:e.clientX; const cy=e.touches?e.touches[0].clientY:e.clientY;
-            return {x:(cx-r.left)*(c.width/r.width), y:(cy-r.top)*(c.height/r.height)};
+    function initDrawing(canvas, parent) {
+        const ctx = canvas.getContext('2d'); ctx.strokeStyle = '#ff5722'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+        let drawing = false;
+        const getPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
         };
-        const s=(e)=>{ if(p.id===steps[cur].id) update(); d=true; ctx.beginPath(); ctx.moveTo(getP(e).x, getP(e).y); };
-        const m=(e)=>{ if(!d)return; e.preventDefault(); const pos=getP(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); };
-        c.addEventListener('mousedown',s); c.addEventListener('mousemove',m); window.addEventListener('mouseup',()=>d=false);
-        c.addEventListener('touchstart',s,{passive:false}); c.addEventListener('touchmove',m,{passive:false}); c.addEventListener('touchend',()=>d=false);
+        const start = (e) => { if(parent.id === steps[cur].id) update(); drawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); };
+        const move = (e) => { if(!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+        const end = () => { drawing = false; };
+        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
+        canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', move, {passive: false}); canvas.addEventListener('touchend', end);
     }
 
     function numInput(v) {
-        const active=document.getElementById(steps[cur].id); if(!active)return;
-        const s=active.querySelector('span'); s.textContent=(v==='del')?"":v;
+        const activeCell = document.getElementById(steps[cur].id);
+        if(!activeCell) return;
+        const span = activeCell.querySelector('.num-display');
+        if(v==='del') span.textContent = ""; else span.textContent = v;
     }
 
     function check() {
-        const s=steps[cur]; const active=document.getElementById(s.id); if(!active)return;
-        if(parseInt(active.querySelector('span').textContent)===s.ans) {
-            active.classList.remove('active'); active.style.background="#dcfce7";
-            cur++; checkAutoSkip();
-            if(cur>=steps.length) { document.getElementById('clearOverlay').style.display='flex'; totalGems+=10; localStorage.setItem('mathGems',totalGems); updateStats(); }
-            else update();
-        } else { active.querySelector('span').textContent=""; }
+        const s = steps[cur]; const activeCell = document.getElementById(s.id);
+        if(!activeCell) return;
+        const val = activeCell.querySelector('.num-display').textContent;
+        if(val !== "" && parseInt(val)===s.ans) {
+            activeCell.classList.remove('input','active'); activeCell.style.color="blue";
+            soundMagic.play(); cur++;
+            if(cur>=steps.length) gameClear();
+            else { checkAutoSkip(); if(cur>=steps.length) gameClear(); else update(); }
+        } else { activeCell.querySelector('.num-display').textContent = ""; }
     }
 
     function checkAutoSkip() {
         while(cur < steps.length) {
             const s = steps[cur];
-            // 先頭の0判定（各行の最も左側のマスで、答えが0の場合）
-            const isLeadingZero = (s.ans === 0 && (s.id.includes('1000') || s.id.includes('10000')));
-            if(isLeadingZero) {
+            if(s.ans === 0 && (s.id.endsWith('00') || s.id.endsWith('000') || s.id.endsWith('0000'))) {
                 const cell = document.getElementById(s.id);
-                if(cell) { cell.classList.remove('input','active'); cell.style.background="transparent"; }
+                if(cell) cell.classList.remove('input','active');
                 cur++;
             } else break;
         }
     }
 
-    function update() {
-        document.querySelectorAll('.cell').forEach(c=>c.classList.remove('active','highlight'));
-        const s=steps[cur]; if(!s)return;
-        const active=document.getElementById(s.id); if(active) active.classList.add('active');
-        s.h.forEach(idx=>{ const t=document.querySelectorAll('.cell')[idx]; if(t) t.classList.add('highlight'); });
+    function gameClear() {
+        let earn = [0,1,3,5,7][currentLevel];
+        totalGems += earn; localStorage.setItem('mathGems', totalGems);
+        updateStats(); document.getElementById('gemsDisplay').innerText = "💎".repeat(Math.min(earn, 7));
+        document.getElementById('clearOverlay').style.display='flex';
     }
 
-    function showHint() { steps[cur].h.forEach(idx=>{ const t=document.querySelectorAll('.cell')[idx]; if(t) t.animate([{background:'#fef08a'},{background:'#facc15'},{background:'#fef08a'}],500); }); }
-    function updateStats() { document.getElementById('totalGemsCount').textContent=totalGems; }
-    function backToMenu() { document.getElementById('levelMenu').style.display='flex'; }
+    function updateStats() {
+        document.getElementById('totalGemsCount').innerText = totalGems;
+        let titleIdx = Math.min(Math.floor(totalGems / 10), titles.length - 1);
+        document.getElementById('currentTitle').innerText = totalGems < 10 ? "かけだし" : titles[titleIdx];
+    }
+
+    function update() {
+        document.querySelectorAll('.cell').forEach(c=>c.classList.remove('active','highlight'));
+        const activeCell = document.getElementById(steps[cur].id);
+        if(activeCell) activeCell.classList.add('active');
+        if(steps[cur]) {
+            steps[cur].h.forEach(idx => {
+                const target = document.querySelectorAll('.cell')[idx];
+                if(target) target.classList.add('highlight');
+            });
+        }
+    }
+
+    function showHint() {
+        if(!steps[cur]) return;
+        steps[cur].h.forEach(idx => {
+            const el = document.querySelectorAll('.cell')[idx];
+            if(el) el.animate([{background:'#fff59d'}, {background:'#ffeb3b'}, {background:'#fff59d'}], {duration: 400, iterations: 2});
+        });
+    }
+
+    function clearAllMemos() { document.querySelectorAll('.memo-canvas').forEach(canvas => canvas.getContext('2d').clearRect(0, 0, 40, 40)); }
+
     updateStats();
 </script>
 </body>
