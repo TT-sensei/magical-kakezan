@@ -37,7 +37,7 @@
         }
         .cell { aspect-ratio: 1/1; display: flex; justify-content: center; align-items: center; font-size: min(7vw, 28px); position: relative; border-radius: 5px; }
         
-        /* 手書きメモ用キャンバス（pointer-eventsを制御して入力を邪魔しないように修正） */
+        /* メモキャンバスの修正: pointer-events: noneをデフォルトにし、描画時のみ有効化 */
         .memo-canvas {
             position: absolute; top: -24px; left: 50%; transform: translateX(-50%);
             width: 32px; height: 32px; background: rgba(255,255,255,0.7); 
@@ -53,7 +53,7 @@
         .key { 
             padding: 12px 0; font-size: 20px; border: none; border-radius: 12px; 
             background: var(--accent); color: white; cursor: pointer; font-family: var(--font-family); 
-            box-shadow: 0 4px 0 #1976D2; transition: 0.1s;
+            box-shadow: 0 4px 0 #1976D2; transition: 0.1s; position: relative; z-index: 20;
         }
         .key:active { transform: translateY(2px); box-shadow: 0 2px 0 #1976D2; }
         .key.del { background: #f44336; box-shadow: 0 4px 0 #d32f2f; }
@@ -76,22 +76,30 @@
         <div id="title-box" class="title-display">称号: <span id="currentTitle">かけだし</span></div>
     </div>
 
-    <div id="piko" style="height:20px; margin-bottom:10px; color:var(--primary); font-size:13px;">青いマスをえらんで、数字をうとう！</div>
+    <div id="piko" style="height:20px; margin-bottom:10px; color:var(--primary); font-size:13px;">数字をうつ or メモをかく！</div>
     
     <div class="board" id="board">
         <div id="combo-text"></div>
     </div>
 
     <div class="keyboard">
-        <button class="key" onclick="numInput(1)">1</button><button class="key" onclick="numInput(2)">2</button><button class="key" onclick="numInput(3)">3</button>
-        <button class="key" onclick="numInput(4)">4</button><button class="key" onclick="numInput(5)">5</button><button class="key" onclick="numInput(6)">6</button>
-        <button class="key" onclick="numInput(7)">7</button><button class="key" onclick="numInput(8)">8</button><button class="key" onclick="numInput(9)">9</button>
-        <button class="key del" onclick="numInput('del')">↩</button><button class="key" onclick="numInput(0)">0</button><button class="key hint" onclick="showHint()">💡ﾋﾝﾄ</button>
-        <button class="key ok" onclick="check()">OK!</button>
+        <button class="key" onmousedown="numInput(1)" ontouchstart="numInput(1)">1</button>
+        <button class="key" onmousedown="numInput(2)" ontouchstart="numInput(2)">2</button>
+        <button class="key" onmousedown="numInput(3)" ontouchstart="numInput(3)">3</button>
+        <button class="key" onmousedown="numInput(4)" ontouchstart="numInput(4)">4</button>
+        <button class="key" onmousedown="numInput(5)" ontouchstart="numInput(5)">5</button>
+        <button class="key" onmousedown="numInput(6)" ontouchstart="numInput(6)">6</button>
+        <button class="key" onmousedown="numInput(7)" ontouchstart="numInput(7)">7</button>
+        <button class="key" onmousedown="numInput(8)" ontouchstart="numInput(8)">8</button>
+        <button class="key" onmousedown="numInput(9)" ontouchstart="numInput(9)">9</button>
+        <button class="key del" onmousedown="numInput('del')" ontouchstart="numInput('del')">↩</button>
+        <button class="key" onmousedown="numInput(0)" ontouchstart="numInput(0)">0</button>
+        <button class="key hint" onmousedown="showHint()" ontouchstart="showHint()">💡ﾋﾝﾄ</button>
+        <button class="key ok" onmousedown="check()" ontouchstart="check()">OK!</button>
     </div>
 
     <div style="margin-top:10px;">
-        <button onclick="clearAllMemos()" style="background:none; border:1px solid #ccc; font-size:10px; color:#999; border-radius:5px; padding:3px 10px;">メモをぜんぶ消す</button>
+        <button onclick="clearAllMemos()" style="background:none; border:1px solid #ccc; font-size:10px; color:#999; border-radius:5px; padding:3px 10px;">メモ消去</button>
     </div>
 
     <div class="overlay" id="clearOverlay">
@@ -103,7 +111,7 @@
 
 <script>
     const titles = ["魔法のたまご", "見習い魔法使い", "呪文の初心者", "ほうき乗り志望", "薬草の鑑定士", "魔法の筆使い", "星読みの生徒", "杖の選び手", "図書館の番人", "【一人前魔法使い】", "炎の術師", "水の魔導士", "風の旅人", "大地の守護者", "雷鳴の使い手", "氷結の魔導師", "光の導き手", "闇を払う者", "精霊との契約者", "【エリート魔導師】", "古代文字の解読者", "秘宝の探索者", "幻獣の友", "錬金術の達人", "時空の旅人", "異世界の案内人", "魔力回路の天才", "伝説の語り部", "禁忌の魔法使い", "【大魔導師】", "賢者の弟子", "真理の追究者", "浮遊島の主", "龍の騎士", "運命の操作者", "神話の生き残り", "聖域の守護聖人", "宇宙の観測者", "多次元の覇者", "【大賢者】", "神の代行者", "創造の魔法使い", "永遠を生きる者", "銀河の調停者", "魔法界の王", "全知全能の萌芽", "神話の創造主", "次元を超えし存在", "魔法の根源", "【筆算の神】"];
-    let level=1, n1, n2, steps=[], cur=0, combo = 0;
+    let n1, n2, steps=[], cur=0, combo = 0;
     let totalGems = parseInt(localStorage.getItem('mathGems')) || 0;
     const soundMagic = new Audio('https://actions.google.com/sounds/v1/cartoon/glissando.ogg');
     const soundClear = new Audio('https://actions.google.com/sounds/v1/cartoon/positive_musical_chip.ogg');
@@ -113,9 +121,7 @@
         document.getElementById('totalGemsCount').innerText = totalGems;
         let titleIdx = Math.floor(totalGems / 10);
         if (titleIdx >= titles.length) titleIdx = titles.length - 1;
-        const newTitle = totalGems < 10 ? "かけだし" : titles[titleIdx - 1];
-        document.getElementById('currentTitle').innerText = newTitle;
-        if (!isInitial) createConfetti();
+        document.getElementById('currentTitle').innerText = totalGems < 10 ? "かけだし" : titles[titleIdx - 1];
     }
 
     function createConfetti() {
@@ -161,27 +167,27 @@
             canvas.className = 'memo-canvas';
             canvas.width = 40; canvas.height = 40;
             el.appendChild(canvas);
-            initDrawing(canvas);
-            // マス全体をクリックしたときに、そのマスを選択状態にする
-            el.addEventListener('mousedown', () => { if(el.id === steps[cur].id) update(); });
-            el.addEventListener('touchstart', () => { if(el.id === steps[cur].id) update(); });
+            initDrawing(canvas, el);
         });
     }
 
-    function initDrawing(canvas) {
+    function initDrawing(canvas, parent) {
         const ctx = canvas.getContext('2d');
         ctx.strokeStyle = '#ff5722'; ctx.lineWidth = 3; ctx.lineCap = 'round';
         let drawing = false;
+
         const getPos = (e) => {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
         };
+
         const start = (e) => { 
-            if(e.target === canvas) {
-                drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y);
-            }
+            // マス全体を選択状態にする
+            if(parent.id === steps[cur].id) update();
+            drawing = true; ctx.beginPath(); 
+            const p = getPos(e); ctx.moveTo(p.x, p.y);
         };
         const move = (e) => { 
             if(!drawing) return; 
@@ -189,8 +195,13 @@
             const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); 
         };
         const end = () => { drawing = false; };
-        canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move); window.addEventListener('mouseup', end);
-        canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', move, {passive: false}); canvas.addEventListener('touchend', end);
+
+        canvas.addEventListener('mousedown', start);
+        canvas.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', end);
+        canvas.addEventListener('touchstart', start, {passive: false});
+        canvas.addEventListener('touchmove', move, {passive: false});
+        canvas.addEventListener('touchend', end);
     }
 
     function clearAllMemos() {
@@ -219,30 +230,26 @@
         if(!activeCell) return;
         const val = activeCell.childNodes[0].textContent;
         if(val !== "" && parseInt(val)===s.ans) {
-            combo++; showCombo();
+            combo++;
+            const t = document.getElementById('combo-text');
+            t.innerText = combo + " コンボ！🔥";
+            t.classList.remove('combo-ani'); void t.offsetWidth; t.classList.add('combo-ani');
+
             activeCell.classList.remove('input','active'); activeCell.style.color="blue";
             soundMagic.currentTime = 0; soundMagic.play();
             cur++;
-            if(cur>=steps.length) gameClear(); else update();
+            if(cur>=steps.length) {
+                totalGems += 5; localStorage.setItem('mathGems', totalGems);
+                updateStats(); soundClear.play();
+                document.getElementById('gems').innerText = "💎💎💎💎💎";
+                document.getElementById('clearOverlay').style.display='flex';
+                createConfetti();
+            } else update();
         } else {
             combo = 0; activeCell.childNodes[0].textContent = "";
-            document.getElementById('piko').innerText="ちがうよ！もういちど！";
-            setTimeout(()=>document.getElementById('piko').innerText="修行中...", 1000);
         }
     }
 
-    function showCombo() {
-        const t = document.getElementById('combo-text');
-        t.innerText = combo + " コンボ！🔥";
-        t.classList.remove('combo-ani'); void t.offsetWidth; t.classList.add('combo-ani');
-    }
-
-    function gameClear() {
-        totalGems += 5; localStorage.setItem('mathGems', totalGems);
-        updateStats(); soundClear.play();
-        document.getElementById('gems').innerText = "💎💎💎💎💎";
-        document.getElementById('clearOverlay').style.display='flex';
-    }
     initGame();
 </script>
 </body>
