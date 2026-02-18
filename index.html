@@ -130,7 +130,7 @@
                 <button class="key" onclick="numInput(1)">1</button><button class="key" onclick="numInput(2)">2</button><button class="key" onclick="numInput(3)">3</button>
                 <button class="key" onclick="numInput(4)">4</button><button class="key" onclick="numInput(5)">5</button><button class="key" onclick="numInput(6)">6</button>
                 <button class="key" onclick="numInput(7)">7</button><button class="key" onclick="numInput(8)">8</button><button class="key" onclick="numInput(9)">9</button>
-                <button class="key" style="background:#f44336; box-shadow: 0 4px 0 #b71c1c;" onclick="numInput('del')">↩</button><button class="key" onclick="numInput(0)">0</button><button class="key" style="background:#9c27b0; box-shadow: 0 4px 0 #7b1fa2;" onclick="showHint()">💡</button>
+                <button class="key" style="background:#f44336; box-shadow: 0 4px 0 #b71c1c;" onclick="numInput('del')">↩</button><button class="key" onclick="numInput(0)">0</button><div class="key" style="visibility:hidden;"></div>
                 <button class="key ok" onclick="check()">OK!</button>
             </div>
         </div>
@@ -243,7 +243,8 @@
                    `<div class="line w5"></div>` +
                    `<div class="cell"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div>`;
         } else {
-            const s1=String(n1).padStart(2,' '), s2=String(n2).padStart(2,' ');
+            const s1=String(n1).padStart(2,' ');
+            const s2=String(n2).padStart(2,' ');
             html = `<div class="cell"></div><div class="cell"></div><div class="cell">${s1[0]}</div><div class="cell">${s1[1]}</div><div class="cell"></div>` +
                    `<div class="cell">×</div><div class="cell"></div><div class="cell">${s2[0]}</div><div class="cell">${s2[1]}</div><div class="cell"></div>` +
                    `<div class="line w5"></div>` +
@@ -318,6 +319,7 @@
             steps[cur].h.forEach(idx => { const t = document.querySelectorAll('.cell')[idx]; if(t) t.classList.add('highlight'); });
         }
     }
+
     function clearAllMemos() { document.querySelectorAll('.memo-canvas').forEach(c => c.getContext('2d').clearRect(0,0,40,40)); }
     updateStats();
 </script>
