@@ -318,8 +318,6 @@
             steps[cur].h.forEach(idx => { const t = document.querySelectorAll('.cell')[idx]; if(t) t.classList.add('highlight'); });
         }
     }
-
-    function showHint() { if(steps[cur]) { document.getElementById(steps[cur].id).querySelector('.num-display').textContent = steps[cur].ans; stats[`lv${currentLevel}`].miss += 3; save(); } }
     function clearAllMemos() { document.querySelectorAll('.memo-canvas').forEach(c => c.getContext('2d').clearRect(0,0,40,40)); }
     updateStats();
 </script>
