@@ -104,6 +104,13 @@
         .collection-card.unlocked { border-color: #ffd54f; background: linear-gradient(145deg, #fffde7, #fff8e1); box-shadow: 0 4px 10px rgba(255,193,7,.18); }
         .collection-card.locked { filter: grayscale(1); color: #777; }
         .collection-icon { font-size: 38px; line-height: 1; }
+        .badge-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; }
+        .edu-badge-card { min-height: 190px; border: 2px solid #e4e4e7; border-radius: 16px; padding: 8px; background: #fafafa; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; text-align: center; }
+        .edu-badge-card.earned { border-color: #19bfe8; background: linear-gradient(145deg, #e8fbff, #fff7c8); box-shadow: 0 4px 10px rgba(25,191,232,.18); }
+        .edu-badge-card.locked img { filter: grayscale(1) opacity(.35); }
+        .edu-badge-image { width: 92px; height: 92px; object-fit: contain; }
+        .edu-badge-name { font-weight: bold; font-size: 13px; }
+        .edu-badge-hint { font-size: 11px; line-height: 1.45; color: #666; }
         .collection-name, .medal-name { font-weight: bold; font-size: 13px; }
         .collection-hint, .medal-hint { font-size: 11px; line-height: 1.5; color: #666; }
         .medal-card { min-height: 115px; }
@@ -160,6 +167,7 @@
         <div class="bonus-tabs" role="tablist" aria-label="おまけ部屋の切り替え">
             <button id="tabCollection" class="bonus-tab active" onclick="showBonusTab('collection')">魔法図鑑</button>
             <button id="tabMedals" class="bonus-tab" onclick="showBonusTab('medals')">メダル</button>
+            <button id="tabBadges" class="bonus-tab" onclick="showBonusTab('badges')">バッジ</button>
             <button id="tabDaily" class="bonus-tab" onclick="showBonusTab('daily')">スタンプ</button>
         </div>
         <div id="bonusContent" class="bonus-panel"></div>
@@ -223,6 +231,19 @@
         { icon:'🧹', name:'Lv5への旅', hint:'Lv5で5問合格', test:s => s.lv5.solve >= 5 },
         { icon:'📅', name:'七日の星', hint:'7日分のスタンプ', test:s => Object.keys(s.daily || {}).length >= 7 }
     ];
+    const eduBadges = [
+        { slug:'first-step', root:'common', name:'はじめの一歩', hint:'1問クリア', test:s => totalSolves(s) >= 1 },
+        { slug:'challenger', root:'common', name:'チャレンジャー', hint:'5問クリア', test:s => totalSolves(s) >= 5 },
+        { slug:'great-answer', root:'common', name:'ナイスアンサー', hint:'10問クリア', test:s => totalSolves(s) >= 10 },
+        { slug:'keep-going', root:'common', name:'継続パワー', hint:'3日以上取り組む', test:s => Object.keys(s.daily || {}).length >= 3 },
+        { slug:'practice-master', root:'common', name:'れんしゅう名人', hint:'30問クリア', test:s => totalSolves(s) >= 30 },
+        { slug:'calculation', root:'math', name:'計算マスター', hint:'計算修行を始める', test:s => totalSolves(s) >= 1 },
+        { slug:'number-sense', root:'math', name:'数となかよし', hint:'Lv1を5問クリア', test:s => s.lv1.solve >= 5 },
+        { slug:'logical-thinking', root:'math', name:'すじみち思考', hint:'全レベルに挑戦', test:s => [1,2,3,4,5].every(l => s[`lv${l}`].solve > 0) },
+        { slug:'strategy', root:'math', name:'作戦名人', hint:'Lv5を5問クリア', test:s => s.lv5.solve >= 5 },
+        { slug:'math-discovery', root:'math', name:'算数のひみつ', hint:'50問クリア', test:s => totalSolves(s) >= 50 }
+    ];
+    const eduBadgeImage = badge => `https://tt-sensei.github.io/edu-assets/assets/badges/${badge.root}/${badge.slug}/badge.png`;
     let n1, n2, steps=[], cur=0, currentLevel = 1;
     let bonusTab = 'collection', bonusReturnToMenu = true;
     let stats = normalizeStats(JSON.parse(localStorage.getItem('mathStats') || 'null'));
@@ -284,12 +305,14 @@
     function renderBonus() {
         const unlocked = collectionItems.filter(item => stats.totalGems >= item.gems).length;
         const earned = medals.filter(medal => medal.test(stats)).length;
+        const badgeEarned = eduBadges.filter(badge => badge.test(stats)).length;
         const stamped = Object.keys(stats.daily).length;
         document.getElementById('bonusSummary').innerHTML =
             `<div class="summary-card"><b>${unlocked}/${collectionItems.length}</b>図鑑</div>` +
             `<div class="summary-card"><b>${earned}/${medals.length}</b>メダル</div>` +
+            `<div class="summary-card"><b>${badgeEarned}/${eduBadges.length}</b>バッジ</div>` +
             `<div class="summary-card"><b>${stamped}日</b>修行</div>`;
-        ['Collection','Medals','Daily'].forEach(name => document.getElementById(`tab${name}`).classList.toggle('active', bonusTab === name.toLowerCase()));
+        ['Collection','Medals','Badges','Daily'].forEach(name => document.getElementById(`tab${name}`).classList.toggle('active', bonusTab === name.toLowerCase()));
         const content = document.getElementById('bonusContent');
         if(bonusTab === 'collection') {
             const next = collectionItems.find(item => stats.totalGems < item.gems);
@@ -304,6 +327,11 @@
             content.innerHTML = `<p style="margin-top:0;">いろいろな修行に挑戦して、メダルを集めよう。</p><div class="medal-grid">${medals.map(medal => {
                 const got = medal.test(stats);
                 return `<div class="medal-card ${got?'earned':''}"><div class="medal-icon">${got?medal.icon:'🔒'}</div><div class="medal-name">${medal.name}</div><div class="medal-hint">${medal.hint}${got?'　達成！':''}</div></div>`;
+            }).join('')}</div>`;
+        } else if(bonusTab === 'badges') {
+            content.innerHTML = `<p style="margin-top:0;">算数の力や、挑戦の積み重ねでバッジが解放されるよ。</p><div class="badge-grid">${eduBadges.map(badge => {
+                const got = badge.test(stats);
+                return `<div class="edu-badge-card ${got?'earned':'locked'}"><img class="edu-badge-image" src="${eduBadgeImage(badge)}" alt="${got?badge.name:'未獲得バッジ'}"><div class="edu-badge-name">${got?badge.name:'？？？'}</div><div class="edu-badge-hint">${got?badge.hint:'条件を達成すると解放'}</div></div>`;
             }).join('')}</div>`;
         } else {
             const todayCount = stats.daily[localDate()] || 0;
@@ -459,14 +487,20 @@
 
     function gameClear() {
         const beforeUnlocks = collectionItems.filter(item => stats.totalGems >= item.gems).length;
+        const beforeBadges = eduBadges.filter(badge => badge.test(stats)).length;
         const today = localDate();
         let earn = currentLevel; stats.totalGems += earn; stats[`lv${currentLevel}`].solve++;
         stats.daily[today] = (stats.daily[today] || 0) + 1;
         save(); updateStats();
         document.getElementById('gemsDisplay').innerText = "💎".repeat(Math.min(earn, 7));
         const newItems = collectionItems.slice(beforeUnlocks).filter(item => stats.totalGems >= item.gems);
+        const newBadges = eduBadges.filter(badge => badge.test(stats)).slice(beforeBadges);
         const unlock = document.getElementById('unlockMessage');
-        if(newItems.length) {
+        if(newBadges.length) {
+            const badge = newBadges[newBadges.length - 1];
+            unlock.innerHTML = `新しいバッジをゲット！<br><b>🏅 ${badge.name}</b>`;
+            unlock.style.display = 'block';
+        } else if(newItems.length) {
             const item = newItems[newItems.length - 1];
             unlock.innerHTML = `図鑑に新しいなかま！<br><b>${item.icon} ${item.name}</b>`;
             unlock.style.display = 'block';
