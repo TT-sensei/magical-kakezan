@@ -54,7 +54,18 @@
         }
         .record-overlay, .bonus-overlay { display: none; justify-content: flex-start; overflow-y: auto; }
 
-        .level-btn { width: 95%; max-width: 300px; padding: 12px; margin: 5px; border: none; border-radius: 12px; font-family: var(--font-family); font-size: 14px; color: white; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2); flex-shrink: 0; }
+        .start-hero { width:100%; max-width:560px; display:grid; grid-template-columns:86px 1fr; grid-template-rows:auto auto auto; gap:2px 14px; text-align:left; align-items:center; margin-bottom:10px; }
+        .start-kicker { grid-column:2; color:#7b1fa2; font-size:10px; font-weight:900; letter-spacing:.12em; }
+        .start-badge-wrap { grid-row:1 / span 3; width:86px; height:86px; border-radius:24px; background:linear-gradient(145deg,#fff3b0,#e7d7ff); display:grid; place-items:center; box-shadow:0 8px 18px rgba(123,31,162,.18); }
+        .start-badge-wrap img { width:76px; height:76px; object-fit:contain; }
+        .start-hero h1 { margin:0; color:#3f197d; font-size:clamp(25px,5vw,40px); letter-spacing:.05em; }
+        .start-hero p { margin:0; color:#65707d; line-height:1.55; font-size:13px; }
+        .start-progress { width:100%; max-width:560px; min-height:28px; padding:6px 12px; border-radius:999px; background:#f3efff; color:#6b4ca5; font-size:12px; font-weight:bold; text-align:left; margin-bottom:8px; }
+        .level-grid { width:100%; max-width:560px; display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+        .level-btn { width:100%; min-height:86px; padding:10px 5px; margin:0; border:none; border-radius:15px; font-family:var(--font-family); color:white; cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,.2); flex-shrink:0; display:flex; flex-direction:column; justify-content:center; gap:4px; }
+        .level-btn span { font-size:20px; font-weight:900; }
+        .level-btn small { font-size:10px; line-height:1.25; }
+        .level-btn b { font-size:11px; background:rgba(255,255,255,.2); border-radius:999px; padding:3px; }
         .lv1 { background: #8bc34a; } .lv2 { background: #aed581; } .lv3 { background: #ff9800; } .lv4 { background: #f44336; } .lv5 { background: #9c27b0; }
 
         .board { 
@@ -89,10 +100,12 @@
         .stat-table th { background: #eee; }
 
         .menu-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; }
-        .menu-link { min-height: 44px; border: 2px solid #dbeafe; border-radius: 999px; padding: 8px 14px; background: #f8fbff; color: #1565c0; font: inherit; font-size: 14px; cursor: pointer; }
+        .menu-link { min-height:44px; border:2px solid #dbeafe; border-radius:999px; padding:8px 14px; background:#f8fbff; color:#1565c0; font:inherit; font-size:14px; cursor:pointer; }
+        .badge-menu-link { border-color:#ead7f5; background:#fbf5ff; color:#7b1fa2; }
         .bonus-header { width: 100%; max-width: 720px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .bonus-header h2 { color: #7b1fa2; margin: 0; }
-        .bonus-summary { width: 100%; max-width: 720px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+        .bonus-summary { width:100%; max-width:720px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:14px 0; }
+        .badge-collection-note { padding:10px 12px; margin:8px 0 14px; border-radius:12px; background:#fff8e1; border:1px solid #ffe082; color:#745b00; font-size:12px; text-align:left; }
         .summary-card { background: #faf5ff; border: 2px solid #ead7f5; border-radius: 14px; padding: 10px 4px; }
         .summary-card b { display: block; color: #7b1fa2; font-size: 19px; }
         .bonus-tabs { display: flex; gap: 8px; width: 100%; max-width: 720px; margin-bottom: 12px; }
@@ -126,6 +139,7 @@
         .particle { position: fixed; z-index: 3000; pointer-events: none; font-size: 22px; animation: sparkle 1.1s ease-out forwards; }
         @keyframes sparkle { 0% { transform: translate(0,0) scale(.5) rotate(0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(1.2) rotate(220deg); opacity: 0; } }
         @keyframes pop { 0% { transform: scale(.75); opacity: 0; } 70% { transform: scale(1.06); } 100% { transform: scale(1); opacity: 1; } }
+        @media (max-width: 620px) { .level-grid { grid-template-columns:repeat(3,1fr); } .start-hero { grid-template-columns:70px 1fr; } .start-badge-wrap { width:70px; height:70px; } .start-badge-wrap img { width:62px; height:62px; } }
         @media (max-width: 520px) {
             .bonus-overlay { padding: 12px 8px; }
             .bonus-summary { grid-template-columns: repeat(3, 1fr); font-size: 11px; }
@@ -139,15 +153,23 @@
 
 <div class="container">
     <div id="levelMenu" class="menu-overlay">
-        <h2 style="color:var(--primary); margin-bottom:10px;">修行を選べ！</h2>
-        <button class="level-btn lv1" onclick="startLevel(1)">Lv1 (💎1) 2×1</button>
-        <button class="level-btn lv2" onclick="startLevel(2)">Lv2 (💎2) 2×2 かんたん</button>
-        <button class="level-btn lv3" onclick="startLevel(3)">Lv3 (💎3) 2×2 ふつう</button>
-        <button class="level-btn lv4" onclick="startLevel(4)">Lv4 (💎4) 2×2 むずい</button>
-        <button class="level-btn lv5" onclick="startLevel(5)">Lv5 (💎5) 3×2</button>
+        <div class="start-hero">
+            <div class="start-kicker">MAGICAL CALCULATION QUEST</div>
+            <div class="start-badge-wrap"><img src="https://tt-sensei.github.io/edu-assets/assets/badges/math/calculation/badge.png" alt="計算マスターバッジ"></div>
+            <h1>魔法のかけ算</h1>
+            <p>筆算の呪文を身につけて、<br>バッジを集めよう！</p>
+        </div>
+        <div class="start-progress" id="startProgress"></div>
+        <div class="level-grid">
+            <button class="level-btn lv1" onclick="startLevel(1)"><span>Lv1</span><small>2×1　まずは一歩</small><b>はじめる</b></button>
+            <button class="level-btn lv2" onclick="startLevel(2)"><span>Lv2</span><small>2×2　かんたん</small><b>はじめる</b></button>
+            <button class="level-btn lv3" onclick="startLevel(3)"><span>Lv3</span><small>2×2　ふつう</small><b>はじめる</b></button>
+            <button class="level-btn lv4" onclick="startLevel(4)"><span>Lv4</span><small>2×2　むずかしい</small><b>はじめる</b></button>
+            <button class="level-btn lv5" onclick="startLevel(5)"><span>Lv5</span><small>3×2　さいごの試練</small><b>はじめる</b></button>
+        </div>
         <div class="menu-actions">
             <button class="menu-link" onclick="toggleRecord(true)">📜 修行の記録</button>
-            <button class="menu-link" onclick="toggleBonus(true)">🔮 おまけ部屋</button>
+            <button class="menu-link badge-menu-link" onclick="toggleBonus(true)">🏅 バッジコレクション</button>
         </div>
     </div>
 
@@ -164,11 +186,8 @@
             <button class="icon-btn" onclick="toggleBonus(false)">✕ 閉じる</button>
         </div>
         <div id="bonusSummary" class="bonus-summary"></div>
-        <div class="bonus-tabs" role="tablist" aria-label="おまけ部屋の切り替え">
-            <button id="tabCollection" class="bonus-tab active" onclick="showBonusTab('collection')">魔法図鑑</button>
-            <button id="tabMedals" class="bonus-tab" onclick="showBonusTab('medals')">メダル</button>
-            <button id="tabBadges" class="bonus-tab" onclick="showBonusTab('badges')">バッジ</button>
-            <button id="tabDaily" class="bonus-tab" onclick="showBonusTab('daily')">スタンプ</button>
+        <div class="bonus-tabs" role="tablist" aria-label="バッジコレクション">
+            <button id="tabBadges" class="bonus-tab active" onclick="showBonusTab('badges')">🏅 バッジコレクション</button>
         </div>
         <div id="bonusContent" class="bonus-panel"></div>
     </div>
@@ -245,7 +264,7 @@
     ];
     const eduBadgeImage = badge => `https://tt-sensei.github.io/edu-assets/assets/badges/${badge.root}/${badge.slug}/badge.png`;
     let n1, n2, steps=[], cur=0, currentLevel = 1;
-    let bonusTab = 'collection', bonusReturnToMenu = true;
+    let bonusTab = 'badges', bonusReturnToMenu = true;
     let stats = normalizeStats(JSON.parse(localStorage.getItem('mathStats') || 'null'));
 
     function normalizeStats(data) {
@@ -303,46 +322,24 @@
     function showBonusTab(tab) { bonusTab = tab; renderBonus(); }
 
     function renderBonus() {
-        const unlocked = collectionItems.filter(item => stats.totalGems >= item.gems).length;
-        const earned = medals.filter(medal => medal.test(stats)).length;
-        const badgeEarned = eduBadges.filter(badge => badge.test(stats)).length;
+        const earned = eduBadges.filter(badge => badge.test(stats)).length;
         const stamped = Object.keys(stats.daily).length;
         document.getElementById('bonusSummary').innerHTML =
-            `<div class="summary-card"><b>${unlocked}/${collectionItems.length}</b>図鑑</div>` +
-            `<div class="summary-card"><b>${earned}/${medals.length}</b>メダル</div>` +
-            `<div class="summary-card"><b>${badgeEarned}/${eduBadges.length}</b>バッジ</div>` +
-            `<div class="summary-card"><b>${stamped}日</b>修行</div>`;
-        ['Collection','Medals','Badges','Daily'].forEach(name => document.getElementById(`tab${name}`).classList.toggle('active', bonusTab === name.toLowerCase()));
-        const content = document.getElementById('bonusContent');
-        if(bonusTab === 'collection') {
-            const next = collectionItems.find(item => stats.totalGems < item.gems);
-            const progress = next ? Math.min(100, stats.totalGems / next.gems * 100) : 100;
-            content.innerHTML = `<p style="margin-top:0;">宝石を集めると、魔法のなかまや秘宝が目を覚ますよ。</p>` +
-                (next ? `<div style="font-size:12px;">次のなかままで、あと <b>${next.gems - stats.totalGems}</b> 💎</div><div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div></div>` : `<p>🎉 魔法図鑑コンプリート！</p>`) +
-                `<div class="collection-grid">${collectionItems.map(item => {
-                    const open = stats.totalGems >= item.gems;
-                    return `<div class="collection-card ${open?'unlocked':'locked'}"><div class="collection-icon">${open?item.icon:'❔'}</div><div class="collection-name">${open?item.name:'まだ ひみつ'}</div><div class="collection-hint">${open?item.text:`💎${item.gems}で解放`}</div></div>`;
-                }).join('')}</div>`;
-        } else if(bonusTab === 'medals') {
-            content.innerHTML = `<p style="margin-top:0;">いろいろな修行に挑戦して、メダルを集めよう。</p><div class="medal-grid">${medals.map(medal => {
-                const got = medal.test(stats);
-                return `<div class="medal-card ${got?'earned':''}"><div class="medal-icon">${got?medal.icon:'🔒'}</div><div class="medal-name">${medal.name}</div><div class="medal-hint">${medal.hint}${got?'　達成！':''}</div></div>`;
-            }).join('')}</div>`;
-        } else if(bonusTab === 'badges') {
-            content.innerHTML = `<p style="margin-top:0;">算数の力や、挑戦の積み重ねでバッジが解放されるよ。</p><div class="badge-grid">${eduBadges.map(badge => {
+            `<div class="summary-card"><b>${earned}/${eduBadges.length}</b>獲得バッジ</div>` +
+            `<div class="summary-card"><b>${totalSolves(stats)}</b>クリア問題</div>` +
+            `<div class="summary-card"><b>${stamped}日</b>修行日数</div>`;
+        document.getElementById('tabBadges').classList.add('active');
+        document.getElementById('bonusContent').innerHTML =
+            `<p style="margin-top:0;">計算の力や挑戦の積み重ねで、edu-assetsのバッジが解放されるよ。</p>
+             <div class="badge-collection-note">バッジはゲームの記録といっしょに保存されます。次のバッジをめざして修行しよう！</div>
+             <div class="badge-grid">${eduBadges.map(badge => {
                 const got = badge.test(stats);
-                return `<div class="edu-badge-card ${got?'earned':'locked'}"><img class="edu-badge-image" src="${eduBadgeImage(badge)}" alt="${got?badge.name:'未獲得バッジ'}"><div class="edu-badge-name">${got?badge.name:'？？？'}</div><div class="edu-badge-hint">${got?badge.hint:'条件を達成すると解放'}</div></div>`;
-            }).join('')}</div>`;
-        } else {
-            const todayCount = stats.daily[localDate()] || 0;
-            const questDone = Math.min(todayCount, 3);
-            const stamps = Array.from({length:7}, (_, i) => {
-                const offset = i - 6, key = localDate(offset), done = !!stats.daily[key];
-                const label = offset === 0 ? '今日' : `${new Date(`${key}T12:00:00`).getDate()}日`;
-                return `<div><div class="stamp ${done?'done':''}">${done?'⭐':'・'}</div><div style="font-size:10px;text-align:center;margin-top:3px;">${label}</div></div>`;
-            }).join('');
-            content.innerHTML = `<div class="daily-card"><b>今日のミニクエスト</b><p>どのレベルでも3問合格しよう！　${questDone}/3</p><div class="progress-track"><div class="progress-fill" style="width:${questDone/3*100}%"></div></div>${questDone === 3 ? '<p>🎁 達成！ 今日の修行はばっちり！</p>' : '<p style="font-size:12px;color:#555;">1問合格すると、その日に星のスタンプがつくよ。</p>'}<div class="stamp-row">${stamps}</div></div>`;
-        }
+                return `<div class="edu-badge-card ${got?'earned':'locked'}">
+                    <img class="edu-badge-image" src="${eduBadgeImage(badge)}" alt="${got?badge.name:'未獲得バッジ'}">
+                    <div class="edu-badge-name">${got?badge.name:'？？？'}</div>
+                    <div class="edu-badge-hint">${got?badge.hint:'条件：'+badge.hint}</div>
+                </div>`;
+             }).join('')}</div>`;
     }
 
     function updateRecordHTML() {
@@ -486,29 +483,23 @@
     }
 
     function gameClear() {
-        const beforeUnlocks = collectionItems.filter(item => stats.totalGems >= item.gems).length;
         const beforeBadges = eduBadges.filter(badge => badge.test(stats)).length;
         const today = localDate();
-        let earn = currentLevel; stats.totalGems += earn; stats[`lv${currentLevel}`].solve++;
+        const earn = currentLevel;
+        stats.totalGems += earn; stats[`lv${currentLevel}`].solve++;
         stats.daily[today] = (stats.daily[today] || 0) + 1;
         save(); updateStats();
         document.getElementById('gemsDisplay').innerText = "💎".repeat(Math.min(earn, 7));
-        const newItems = collectionItems.slice(beforeUnlocks).filter(item => stats.totalGems >= item.gems);
         const newBadges = eduBadges.filter(badge => badge.test(stats)).slice(beforeBadges);
         const unlock = document.getElementById('unlockMessage');
         if(newBadges.length) {
             const badge = newBadges[newBadges.length - 1];
             unlock.innerHTML = `新しいバッジをゲット！<br><b>🏅 ${badge.name}</b>`;
-            unlock.style.display = 'block';
-        } else if(newItems.length) {
-            const item = newItems[newItems.length - 1];
-            unlock.innerHTML = `図鑑に新しいなかま！<br><b>${item.icon} ${item.name}</b>`;
-            unlock.style.display = 'block';
         } else {
-            const next = collectionItems.find(item => stats.totalGems < item.gems);
-            unlock.innerHTML = next ? `次のなかままで あと <b>${next.gems - stats.totalGems} 💎</b>` : '🏆 魔法図鑑コンプリート！';
-            unlock.style.display = 'block';
+            const next = eduBadges.find(badge => !badge.test(stats));
+            unlock.innerHTML = next ? `次のバッジをめざそう！<br><small>${next.hint}</small>` : '🏆 バッジコレクション コンプリート！';
         }
+        unlock.style.display = 'block';
         document.getElementById('clearOverlay').style.display='flex';
         createSparkles();
     }
@@ -528,6 +519,11 @@
     function updateStats() {
         document.getElementById('totalGemsCount').innerText = stats.totalGems;
         document.getElementById('currentTitle').innerText = titles[Math.min(Math.floor(stats.totalGems / 10), titles.length - 1)];
+        const progress = document.getElementById('startProgress');
+        if (progress) {
+            const earned = eduBadges.filter(badge => badge.test(stats)).length;
+            progress.innerHTML = `🏅 バッジ ${earned}/${eduBadges.length}　｜　💎 宝石 ${stats.totalGems}　｜　クリア ${totalSolves(stats)}問`;
+        }
     }
 
     function update() {
