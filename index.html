@@ -519,6 +519,11 @@
     function updateStats() {
         document.getElementById('totalGemsCount').innerText = stats.totalGems;
         document.getElementById('currentTitle').innerText = titles[Math.min(Math.floor(stats.totalGems / 10), titles.length - 1)];
+        const progress = document.getElementById('startProgress');
+        if (progress) {
+            const earned = eduBadges.filter(badge => badge.test(stats)).length;
+            progress.innerHTML = `🏅 バッジ ${earned}/${eduBadges.length}　｜　💎 宝石 ${stats.totalGems}　｜　クリア ${totalSolves(stats)}問`;
+        }
     }
 
     function update() {
