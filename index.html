@@ -117,7 +117,16 @@
         .collection-card.unlocked { border-color: #ffd54f; background: linear-gradient(145deg, #fffde7, #fff8e1); box-shadow: 0 4px 10px rgba(255,193,7,.18); }
         .collection-card.locked { filter: grayscale(1); color: #777; }
         .collection-icon { font-size: 38px; line-height: 1; }
-        .badge-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; }
+        .badge-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; width:100%; }
+        .edu-badge-card { min-width:0; }
+        .navi-assist { display:none; align-items:center; justify-content:center; gap:7px; min-height:52px; margin:2px auto 4px; color:#5f4b7a; font-size:12px; font-weight:bold; }
+        .navi-assist img { width:52px; height:52px; object-fit:contain; flex:0 0 52px; }
+        .navi-assist.show { display:flex; }
+        .clear-navi { display:flex; align-items:center; justify-content:center; gap:8px; min-height:52px; margin:-4px 0 8px; color:#5f4b7a; font-size:13px; font-weight:bold; }
+        .clear-navi img { width:52px; height:52px; object-fit:contain; flex:0 0 52px; }
+        .edu-badge-image { width:72px; height:72px; object-fit:contain; }
+        @media (max-width: 720px) { .badge-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+        @media (max-width: 520px) { .badge-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; } .edu-badge-card { min-height:165px; padding:6px 3px; } .edu-badge-image { width:62px; height:62px; } }
         .edu-badge-card { min-height: 190px; border: 2px solid #e4e4e7; border-radius: 16px; padding: 8px; background: #fafafa; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; text-align: center; }
         .edu-badge-card.earned { border-color: #19bfe8; background: linear-gradient(145deg, #e8fbff, #fff7c8); box-shadow: 0 4px 10px rgba(25,191,232,.18); }
         .edu-badge-card.locked img { filter: grayscale(1) opacity(.35); }
@@ -201,6 +210,10 @@
         <div class="total-gems">💎 宝石: <span id="totalGemsCount">0</span></div>
         <div id="title-box" class="title-display">称号: <span id="currentTitle">かけだし</span></div>
     </div>
+    <div id="naviAssist" class="navi-assist" aria-live="polite">
+        <img src="https://tt-sensei.github.io/navi-character-/assets/characters/nami/expressions/01-normal-smile.png" alt="">
+        <span>いっしょに考えてみよう！</span>
+    </div>
     
     <div class="game-main">
         <div class="board-container">
@@ -220,6 +233,10 @@
 
     <div class="overlay" id="clearOverlay">
         <h2 id="clearMsg" style="font-size:32px; color:var(--primary);">合格！</h2>
+        <div id="clearNavi" class="clear-navi">
+            <img src="https://tt-sensei.github.io/navi-character-/assets/characters/saku/expressions/08-celebrating.png" alt="">
+            <span>よくできたね！</span>
+        </div>
         <div id="gemsDisplay" style="font-size:40px; margin-bottom:20px;"></div>
         <div id="unlockMessage" class="new-unlock"></div>
         <button class="key" style="width:150px" onclick="initGame()">次へ</button>
@@ -263,7 +280,35 @@
         { slug:'math-discovery', root:'math', name:'算数のひみつ', hint:'50問クリア', test:s => totalSolves(s) >= 50 }
     ];
     const eduBadgeImage = badge => `https://tt-sensei.github.io/edu-assets/assets/badges/${badge.root}/${badge.slug}/badge.png`;
-    let n1, n2, steps=[], cur=0, currentLevel = 1;
+    const naviCharacters = ['nami','saku','tsuki','kai','sora','riku'];
+    const naviExpressions = {
+        normal: '01-normal-smile.png',
+        encouraging: '07-encouraging.png',
+        celebrating: '08-celebrating.png',
+        troubled: '06-troubled.png'
+    };
+    let n1, n2, steps=[], cur=0, currentLevel = 1, naviTimer;
+    function naviImage(mood = 'normal') {
+        const character = naviCharacters[Math.floor(Math.random() * naviCharacters.length)];
+        const expression = naviExpressions[mood] || naviExpressions.normal;
+        return `https://tt-sensei.github.io/navi-character-/assets/characters/${character}/expressions/${expression}`;
+    }
+    function showNavi(message, mood = 'normal', duration = 2200) {
+        const box = document.getElementById('naviAssist');
+        if (!box) return;
+        box.querySelector('img').src = naviImage(mood);
+        box.querySelector('span').textContent = message;
+        box.classList.add('show');
+        clearTimeout(naviTimer);
+        naviTimer = setTimeout(() => box.classList.remove('show'), duration);
+    }
+    function showClearNavi(message = 'よくできたね！') {
+        const box = document.getElementById('clearNavi');
+        if (!box) return;
+        box.querySelector('img').src = naviImage('celebrating');
+        box.querySelector('span').textContent = message;
+    }
+    let bonusTab = 'badges', bonusReturnToMenu = true;
     let bonusTab = 'badges', bonusReturnToMenu = true;
     let stats = normalizeStats(JSON.parse(localStorage.getItem('mathStats') || 'null'));
 
@@ -301,7 +346,7 @@
     }
 
     function save() { localStorage.setItem('mathStats', JSON.stringify(stats)); }
-    function startLevel(lv) { currentLevel = lv; document.getElementById('levelMenu').style.display = 'none'; initGame(); }
+    function startLevel(lv) { currentLevel = lv; document.getElementById('levelMenu').style.display = 'none'; showNavi('あせらず、じっくり考えよう！','encouraging',2600); initGame(); }
     function backToMenu() { document.getElementById('levelMenu').style.display = 'flex'; }
     
     // 記録画面の表示切り替え
@@ -469,9 +514,9 @@
         if(!cell) return;
         if(cell.querySelector('.num-display').textContent !== "" && parseInt(cell.querySelector('.num-display').textContent) === s.ans) {
             cell.classList.remove('input','active'); cell.style.color="blue";
-            playMagicSound(); cur++; checkAutoSkip();
+            playMagicSound(); showNavi('その調子！','encouraging',1200); cur++; checkAutoSkip();
             if(cur >= steps.length) gameClear(); else update();
-        } else { cell.querySelector('.num-display').textContent = ""; stats[`lv${currentLevel}`].miss++; save(); }
+        } else { cell.querySelector('.num-display').textContent = ""; stats[`lv${currentLevel}`].miss++; save(); showNavi('もういちど！ 位に気をつけよう。','troubled',2400); }
     }
 
     function checkAutoSkip() {
@@ -500,6 +545,7 @@
             unlock.innerHTML = next ? `次のバッジをめざそう！<br><small>${next.hint}</small>` : '🏆 バッジコレクション コンプリート！';
         }
         unlock.style.display = 'block';
+        showClearNavi(newBadges.length ? 'バッジもゲット！' : 'よくできたね！');
         document.getElementById('clearOverlay').style.display='flex';
         createSparkles();
     }
