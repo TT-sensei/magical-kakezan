@@ -124,13 +124,12 @@
         .navi-assist.show { display:flex; }
         .clear-navi { display:flex; align-items:center; justify-content:center; gap:8px; min-height:52px; margin:-4px 0 8px; color:#5f4b7a; font-size:13px; font-weight:bold; }
         .clear-navi img { width:52px; height:52px; object-fit:contain; flex:0 0 52px; }
-        .edu-badge-image { width:72px; height:72px; object-fit:contain; }
-        @media (max-width: 720px) { .badge-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
-        @media (max-width: 520px) { .badge-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; } .edu-badge-card { min-height:165px; padding:6px 3px; } .edu-badge-image { width:62px; height:62px; } }
         .edu-badge-card { min-height: 190px; border: 2px solid #e4e4e7; border-radius: 16px; padding: 8px; background: #fafafa; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; text-align: center; }
         .edu-badge-card.earned { border-color: #19bfe8; background: linear-gradient(145deg, #e8fbff, #fff7c8); box-shadow: 0 4px 10px rgba(25,191,232,.18); }
         .edu-badge-card.locked img { filter: grayscale(1) opacity(.35); }
         .edu-badge-image { width:72px; height:72px; object-fit:contain; }
+        @media (max-width: 720px) { .badge-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+        @media (max-width: 520px) { .badge-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; } .edu-badge-card { min-height:165px; padding:6px 3px; } .edu-badge-image { width:62px; height:62px; } }
         .edu-badge-name { font-weight: bold; font-size: 13px; }
         .edu-badge-hint { font-size: 11px; line-height: 1.45; color: #666; }
         .collection-name, .medal-name { font-weight: bold; font-size: 13px; }
