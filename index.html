@@ -130,7 +130,7 @@
         .edu-badge-card { min-height: 190px; border: 2px solid #e4e4e7; border-radius: 16px; padding: 8px; background: #fafafa; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; text-align: center; }
         .edu-badge-card.earned { border-color: #19bfe8; background: linear-gradient(145deg, #e8fbff, #fff7c8); box-shadow: 0 4px 10px rgba(25,191,232,.18); }
         .edu-badge-card.locked img { filter: grayscale(1) opacity(.35); }
-        .edu-badge-image { width: 92px; height: 92px; object-fit: contain; }
+        .edu-badge-image { width:72px; height:72px; object-fit:contain; }
         .edu-badge-name { font-weight: bold; font-size: 13px; }
         .edu-badge-hint { font-size: 11px; line-height: 1.45; color: #666; }
         .collection-name, .medal-name { font-weight: bold; font-size: 13px; }
@@ -308,7 +308,6 @@
         box.querySelector('img').src = naviImage('celebrating');
         box.querySelector('span').textContent = message;
     }
-    let bonusTab = 'badges', bonusReturnToMenu = true;
     let bonusTab = 'badges', bonusReturnToMenu = true;
     let stats = normalizeStats(JSON.parse(localStorage.getItem('mathStats') || 'null'));
 
