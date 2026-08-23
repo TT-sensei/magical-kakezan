@@ -119,7 +119,8 @@
         .collection-icon { font-size: 38px; line-height: 1; }
         .badge-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; width:100%; }
         .edu-badge-card { min-width:0; }
-        .navi-assist { display:none; align-items:center; justify-content:center; gap:7px; min-height:52px; margin:2px auto 4px; color:#5f4b7a; font-size:12px; font-weight:bold; }
+        /* 学習中はナビキャラを常時表示。メッセージだけ状況に応じて更新する。 */
+        .navi-assist { display:flex; align-items:center; justify-content:center; gap:7px; min-height:52px; margin:2px auto 4px; color:#5f4b7a; font-size:12px; font-weight:bold; }
         .navi-assist img { width:52px; height:52px; object-fit:contain; flex:0 0 52px; }
         .navi-assist.show { display:flex; }
         .clear-navi { display:flex; align-items:center; justify-content:center; gap:8px; min-height:52px; margin:-4px 0 8px; color:#5f4b7a; font-size:13px; font-weight:bold; }
@@ -163,7 +164,7 @@
     <div id="levelMenu" class="menu-overlay">
         <div class="start-hero">
             <div class="start-kicker">MAGICAL CALCULATION QUEST</div>
-            <div class="start-badge-wrap"><img src="https://tt-sensei.github.io/edu-assets/assets/badges/math/calculation/badge.png" alt="計算マスターバッジ"></div>
+            <div class="start-badge-wrap"><img src="https://tt-sensei.github.io/edu-assets/assets/web/badges/math/calculation/badge.webp" alt="計算マスターバッジ"></div>
             <h1>魔法のかけ算</h1>
             <p>筆算の呪文を身につけて、<br>バッジを集めよう！</p>
         </div>
@@ -210,7 +211,7 @@
         <div id="title-box" class="title-display">称号: <span id="currentTitle">かけだし</span></div>
     </div>
     <div id="naviAssist" class="navi-assist" aria-live="polite">
-        <img src="https://tt-sensei.github.io/navi-character-/assets/characters/nami/expressions/01-normal-smile.png" alt="">
+        <img src="https://tt-sensei.github.io/navi-character-/assets/web/characters/nami/expressions/01-normal-smile.webp" alt="">
         <span>いっしょに考えてみよう！</span>
     </div>
     
@@ -233,7 +234,7 @@
     <div class="overlay" id="clearOverlay">
         <h2 id="clearMsg" style="font-size:32px; color:var(--primary);">合格！</h2>
         <div id="clearNavi" class="clear-navi">
-            <img src="https://tt-sensei.github.io/navi-character-/assets/characters/saku/expressions/08-celebrating.png" alt="">
+            <img src="https://tt-sensei.github.io/navi-character-/assets/web/characters/saku/expressions/08-celebrating.webp" alt="">
             <span>よくできたね！</span>
         </div>
         <div id="gemsDisplay" style="font-size:40px; margin-bottom:20px;"></div>
@@ -276,9 +277,19 @@
         { slug:'number-sense', root:'math', name:'数となかよし', hint:'Lv1を5問クリア', test:s => s.lv1.solve >= 5 },
         { slug:'logical-thinking', root:'math', name:'すじみち思考', hint:'全レベルに挑戦', test:s => [1,2,3,4,5].every(l => s[`lv${l}`].solve > 0) },
         { slug:'strategy', root:'math', name:'作戦名人', hint:'Lv5を5問クリア', test:s => s.lv5.solve >= 5 },
-        { slug:'math-discovery', root:'math', name:'算数のひみつ', hint:'50問クリア', test:s => totalSolves(s) >= 50 }
+        { slug:'math-discovery', root:'math', name:'算数のひみつ', hint:'50問クリア', test:s => totalSolves(s) >= 50 },
+        { slug:'accuracy', root:'common', name:'正確チャレンジ', hint:'20問クリア', test:s => totalSolves(s) >= 20 },
+        { slug:'focus', root:'common', name:'集中タイム', hint:'Lv2を10問クリア', test:s => s.lv2.solve >= 10 },
+        { slug:'problem-solver', root:'common', name:'問題解決名人', hint:'25問クリア', test:s => totalSolves(s) >= 25 },
+        { slug:'hard-worker', root:'common', name:'努力のつみ重ね', hint:'75問クリア', test:s => totalSolves(s) >= 75 },
+        { slug:'level-up', root:'common', name:'レベルアップ', hint:'Lv3を5問クリア', test:s => s.lv3.solve >= 5 },
+        { slug:'mastery', root:'common', name:'修行マスター', hint:'150問クリア', test:s => totalSolves(s) >= 150 },
+        { slug:'never-give-up', root:'common', name:'あきらめない心', hint:'ミスのあとに20問クリア', test:s => totalSolves(s) >= 20 && [1,2,3,4,5].some(l => s[`lv${l}`].miss > 0) },
+        { slug:'streak', root:'common', name:'連続修行', hint:'5日分のスタンプ', test:s => Object.keys(s.daily || {}).length >= 5 },
+        { slug:'independent', root:'common', name:'ひとりで挑戦', hint:'全レベルで3問以上クリア', test:s => [1,2,3,4,5].every(l => s[`lv${l}`].solve >= 3) },
+        { slug:'champion', root:'common', name:'筆算チャンピオン', hint:'全レベルで10問以上クリア', test:s => [1,2,3,4,5].every(l => s[`lv${l}`].solve >= 10) }
     ];
-    const eduBadgeImage = badge => `https://tt-sensei.github.io/edu-assets/assets/badges/${badge.root}/${badge.slug}/badge.png`;
+    const eduBadgeImage = badge => `https://tt-sensei.github.io/edu-assets/assets/web/badges/${badge.root}/${badge.slug}/badge.webp`;
     const naviCharacters = ['nami','saku','tsuki','kai','sora','riku'];
     const naviExpressions = {
         normal: '01-normal-smile.png',
@@ -290,7 +301,7 @@
     function naviImage(mood = 'normal') {
         const character = naviCharacters[Math.floor(Math.random() * naviCharacters.length)];
         const expression = naviExpressions[mood] || naviExpressions.normal;
-        return `https://tt-sensei.github.io/navi-character-/assets/characters/${character}/expressions/${expression}`;
+        return `https://tt-sensei.github.io/navi-character-/assets/web/characters/${character}/expressions/${expression.replace('.png','.webp')}`;
     }
     function showNavi(message, mood = 'normal', duration = 2200) {
         const box = document.getElementById('naviAssist');
@@ -298,8 +309,8 @@
         box.querySelector('img').src = naviImage(mood);
         box.querySelector('span').textContent = message;
         box.classList.add('show');
+        /* ナビキャラは学習中ずっと表示。durationは互換性のため受け取るが非表示にはしない。 */
         clearTimeout(naviTimer);
-        naviTimer = setTimeout(() => box.classList.remove('show'), duration);
     }
     function showClearNavi(message = 'よくできたね！') {
         const box = document.getElementById('clearNavi');
