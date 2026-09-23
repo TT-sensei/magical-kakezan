@@ -15,7 +15,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;font-family:var(--font);color:var(--ink);background:var(--bg)}
 button{font:inherit;cursor:pointer}body{min-height:100svh}.screen{min-height:100svh;display:none}.screen.active{display:flex}
-#homeScreen{align-items:center;justify-content:center;padding:18px;background:linear-gradient(rgba(255,255,255,.38),rgba(238,243,247,.60)),url("https://tt-sensei.github.io/navi-character-/assets/web/fantasy/backgrounds/town.webp") center/cover fixed}
+#homeScreen{align-items:center;justify-content:center;padding:18px;background:linear-gradient(rgba(255,255,255,.38),rgba(238,243,247,.60)),url("https://tt-sensei.github.io/navi-character-/assets/web/fantasy/backgrounds/sky-island.webp") center/cover fixed}
 .home-shell{width:min(1050px,100%);max-height:calc(100svh - 36px);overflow:auto;background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.85);border-radius:28px;padding:24px;box-shadow:0 18px 50px rgba(32,55,74,.16)}
 .home-header{display:grid;grid-template-columns:82px 1fr auto;align-items:center;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--line)}
 .home-badge{width:82px;height:82px;border-radius:22px;background:#f7f1dc;display:grid;place-items:center;box-shadow:0 7px 18px rgba(32,55,74,.10)}
@@ -440,15 +440,6 @@ function updateBoardVisuals(){
   if(step.kind==="digit-input"){const id=step.phase==="sum"?"ans-c"+step.col:"p"+(step.row+1)+"-c"+step.col;$("#"+id)?.classList.add("active")}
 }
 
-function renderKeypad(){
-  const step=activeStep();if(!step){$("#numberPad").innerHTML="";return}
-  const keys=["1","2","3","4","5","6","7","8","9","⌫","0","決定"];
-  $("#numberPad").innerHTML=keys.map(function(k){const cls=k==="決定"?"submit":k==="⌫"?"function":"";return '<button type="button" class="pad-button '+cls+'" data-key="'+k+'">'+k+'</button>'}).join("");
-}
-function updateBoardVisuals(){
-  $$(".cell",$("#board")).forEach(function(c){c.classList.remove("active","focus","wrong")});const step=activeStep();if(!step)return;
-  const cell=$("#"+step.id);if(cell)cell.classList.add("active");(step.h||[]).forEach(function(i){const t=$("#board").children[i];if(t&&!t.classList.contains("line"))t.classList.add("focus")});
-}
 function handleCarryChoice(choice){
   const step=activeStep();if(!step||step.kind!=="carry-check"||battleState.finished)return;
   if(choice!==step.answer){markCurrentStepWrong();registerMistake();setFeedback("10以上になるか、もう一度計算してみよう。","bad");return}
