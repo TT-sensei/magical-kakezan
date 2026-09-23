@@ -447,7 +447,7 @@ function renderKeypad(){
   pad.innerHTML=keys.map(function(k){const cls=k==="決定"?"submit":k==="⌫"?"function":"";return '<button type="button" class="pad-button '+cls+'" data-key="'+k+'">'+k+"</button>"}).join("");
 }
 function updateBoardVisuals(){
-  const b=$("#board"),cells=$(".cell",b);cells.forEach(function(c){c.classList.remove("active","focus","wrong","active-carry")});
+  const b=$("#board"),cells=Array.from(b.querySelectorAll(".cell"));cells.forEach(function(c){c.classList.remove("active","focus","wrong","active-carry")});
   const step=activeStep();if(!step)return;
   (step.focusIds||[]).forEach(function(id){const t=$("#"+id);if(t)t.classList.add(step.kind==="carry-input"?"active-carry":"focus")});
   if(step.kind==="carry-input"){const id=step.phase==="sum"?"c_sum-c"+step.carryCol:"c_p"+(step.row+1)+"-c"+step.carryCol;$("#"+id)?.classList.add("active-carry")}
