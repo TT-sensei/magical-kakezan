@@ -289,15 +289,17 @@ function formatTime(sec){const m=Math.floor(sec/60).toString().padStart(2,"0"),s
 
 function startQuestion(){
   const raw=generateProblem(currentLevel);n1=raw.a;n2=raw.b;setupSteps();cur=0;stateHintVisible=false;
-  renderBoard();updateProblemLabels();checkAutoSkip();
-  renderKeypad();
   try{
+    renderBoard();
+    renderKeypad();
+    updateProblemLabels();
+    checkAutoSkip();
     updateCurrentStep();
   }catch(err){
     console.error("魔法のかけ算バトルの描画エラー:",err);
-    renderKeypad();
-    updateBoardVisuals();
-    setFeedback("表示を立て直しました。もう一度ためしてみよう。","bad");
+    try{renderKeypad()}catch(_){}
+    try{updateBoardVisuals()}catch(_){}
+    try{setFeedback("表示を立て直しました。もう一度ためしてみよう。","bad")}catch(_){}
   }
 }
 function retryQuestion(){
