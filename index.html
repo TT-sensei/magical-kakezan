@@ -331,7 +331,7 @@ function getDigitInfo(id){
   if(id.indexOf("p1_")===0){const place=id.split("_")[1],pn=place==="1"?"一の位":place==="10"?"十の位":place==="100"?"百の位":"千の位";return{title:pn+"の数字を書く",text:n1+" × "+d1+" の答えから、"+pn+"の数字を書こう。",prompt:n1+" × "+d1}}
   if(id.indexOf("p2_")===0){const place=id.split("_")[1],pn=place==="10"?"一の位":place==="100"?"十の位":place==="1000"?"百の位":"千の位";return{title:"十の位の "+pn,text:n1+" × "+d10+" の答えを、右から順に書こう。",prompt:n1+" × "+d10}}
   const place=id.split("_")[1],pn=place==="1"?"一の位":place==="10"?"十の位":place==="100"?"百の位":place==="1000"?"千の位":"一万の位";
-  return{title:"答えの "+pn,text:"できた部分をたして、答えの"+pn+"を書こう。",prompt=p1+(p2?" + "+p2:"")}
+  return{title:"答えの "+pn,text:"できた部分をたして、答えの"+pn+"を書こう。",prompt:p1+(p2?" + "+p2:"")}
 }
 function renderBoard(){
   const b=$("#board"),colCount=currentLevel===5?6:5;b.className="board col"+colCount;let html="";
