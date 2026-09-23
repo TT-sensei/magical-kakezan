@@ -40,7 +40,7 @@ button{font:inherit;cursor:pointer}body{min-height:100svh}.screen{min-height:100
 .battle-side{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,.86);border:1px solid rgba(215,224,231,.9);border-radius:20px;padding:10px;box-shadow:0 8px 22px rgba(32,55,74,.08)}.battle-side img{width:92px;height:125px;object-fit:contain;filter:drop-shadow(0 6px 4px rgba(0,0,0,.12))}.battle-side strong{font-size:13px}.battle-side-right{justify-content:center}.enemy-hp{width:84px;height:8px;background:#e7edf2;border-radius:99px;overflow:hidden}.enemy-hp span{display:block;height:100%;background:#d46d6d;transition:width .2s}.battle-place-progress{padding:5px 9px;border-radius:999px;background:#eef3f7;font-size:11px;font-weight:800;white-space:nowrap}
 .work-area{min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}.problem-card{width:100%;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 14px 34px rgba(24,48,71,.15)}
 .problem-meta{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}.problem-label{font-size:12px;color:var(--muted);font-weight:900;letter-spacing:.05em}.problem-expression{font-size:22px;font-weight:900;color:var(--ink)}
-.board-wrap{display:flex;justify-content:center;align-items:center;overflow:hidden}.board{display:grid;grid-auto-rows:var(--cell);background:#fff;border:2px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:0 3px 12px rgba(24,48,71,.06)}.cell{width:var(--cell);height:var(--cell);display:flex;align-items:center;justify-content:center;border-right:1px solid #e7edf2;border-bottom:1px solid #e7edf2;font-size:clamp(28px,calc(var(--cell)*.52),48px);font-weight:850;position:relative;background:#fff}
+.board-wrap{display:flex;justify-content:center;align-items:center;overflow:hidden}.board{display:grid;grid-auto-rows:var(--cell);background:#fff;border:2px solid var(--ink);border-radius:14px;overflow:hidden;box-shadow:0 3px 12px rgba(24,48,71,.06)}.cell{width:var(--cell);height:var(--cell);display:flex;align-items:center;justify-content:center;border-right:1px solid #e7edf2;border-bottom:1px solid #e7edf2;font-size:clamp(28px,calc(var(--cell)*.52),48px);font-weight:850;position:relative;background:#fff}.cell.carry-row{height:calc(var(--cell)*.42);font-size:0;background:#fbfcfd}.cell.carry-row .carry{height:100%;width:100%;display:flex;align-items:center;justify-content:center;font-size:clamp(18px,calc(var(--cell)*.28),28px);font-weight:900;color:#55708a}.cell.carry-row.active-carry{background:#fff8df}.p1-digit{color:#315f9b;font-weight:900}.p2-digit{color:#3f7f62;font-weight:900}.ans-digit{color:var(--ink);font-weight:900}.p1-carry{color:#557da9}.p2-carry{color:#4f9275}.sum-carry{color:#7a5aa8}
 .board.col5 .cell:nth-child(5n){border-right:0}.board.col6 .cell:nth-child(6n){border-right:0}.cell.input{background:#f8fbfd;color:#20374a}.cell.active{background:var(--focus);box-shadow:inset 0 0 0 3px var(--focus-line);z-index:2}.cell.done{background:var(--correct);color:#246b4a}.cell.wrong{background:var(--danger);box-shadow:inset 0 0 0 3px var(--danger-line);animation:wrongFlash .35s ease}.cell .num-display{position:relative;z-index:2;font-weight:900}.cell .memo-canvas{position:absolute;right:3px;top:3px;width:25px;height:25px;background:rgba(255,243,224,.62);border:1px solid #efc5aa;border-radius:4px;z-index:3;touch-action:none}.line{height:3px;background:var(--ink);border-radius:2px}.line.w5{grid-column:1/6}.line.w6{grid-column:1/7}
 @keyframes wrongFlash{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
 .enemy-hit{animation:enemyHit .45s ease}.hero-action-pop{animation:heroAction .6s ease}.hero-special-pop{animation:heroSpecial .9s ease}.hero-damage-pop{animation:heroDamage .5s ease}
@@ -208,29 +208,51 @@ function generateProblem(levelId){
   return {a:a,b:b};
 }
 function setupSteps(){
-  const d10=Math.floor(n2/10),d1=n2%10,p1=n1*d1,p2=n1*d10,total=n1*n2;
-  if(currentLevel===1){
-    steps=[
-      {id:"p1_1",ans:p1%10,h:[3,8]},{id:"p1_10",ans:Math.floor(p1/10)%10,h:[2,8]},
-      {id:"p1_100",ans:Math.floor(p1/100)||0,h:[2,8],skip:Math.floor(p1/100)===0}
-    ];return;
+  const len1=String(n1).length,len2=String(n2).length;
+  const cols=currentLevel===5?6:5;
+  const aDigits=String(n1).split("").reverse().map(Number);
+  const bDigits=String(n2).split("").reverse().map(Number);
+  const pRows=[];steps=[];
+  function placeName(col){
+    const i=cols-1-col;
+    return ["一のくらい","十のくらい","百のくらい","千のくらい","一万のくらい"][i]||"このくらい";
   }
-  if(currentLevel===5){
-    steps=[
-      {id:"p1_1",ans:p1%10,h:[4,10]},{id:"p1_10",ans:Math.floor(p1/10)%10,h:[3,10]},{id:"p1_100",ans:Math.floor(p1/100)%10,h:[2,10]},
-      {id:"p1_1000",ans:Math.floor(p1/1000)||0,h:[2,10],skip:Math.floor(p1/1000)===0},
-      {id:"p2_10",ans:p2%10,h:[4,9]},{id:"p2_100",ans:Math.floor(p2/10)%10,h:[3,9]},{id:"p2_1000",ans:Math.floor(p2/100)%10,h:[2,9]},
-      {id:"p2_10000",ans:Math.floor(p2/1000)||0,h:[2,9],skip:Math.floor(p2/1000)===0},
-      {id:"a1",ans:total%10,h:[16,22]},{id:"a10",ans:Math.floor(total/10)%10,h:[15,21]},{id:"a100",ans:Math.floor(total/100)%10,h:[14,20]},
-      {id:"a1000",ans:Math.floor(total/1000)%10,h:[13,19]},{id:"a10000",ans:Math.floor(total/10000)||0,h:[12,18],skip:Math.floor(total/10000)===0}
-    ];return;
+  function addPartial(r,k,bDigit,carry,rowDigits){
+    const srcCol=cols-1-k,col=srcCol-r,aDigit=aDigits[k];
+    const total=aDigit*bDigit+carry,carryOut=Math.floor(total/10),resultDigit=total%10,bCol=cols-1-r;
+    const expression=String(aDigit)+"×"+String(bDigit)+(carry?"＋"+String(carry):"");
+    steps.push({kind:"carry-check",phase:"partial",row:r,col:col,expression:expression,fullTotal:total,carryOut:carryOut,answer:carryOut>0?"yes":"no",focusIds:["n1-c"+srcCol,"n2-c"+bCol,"p"+(r+1)+"-c"+col]});
+    if(carryOut>0)steps.push({kind:"carry-input",phase:"partial",row:r,col:col,carryCol:col-1,expected:String(carryOut),expression:expression,focusIds:["c_p"+(r+1)+"-c"+(col-1)]});
+    steps.push({kind:"digit-input",phase:"partial",row:r,col:col,expected:String(resultDigit),carryOut:carryOut,carryCol:col-1,place:placeName(col),expression:expression+"＝",focusIds:["n1-c"+srcCol,"n2-c"+bCol,"p"+(r+1)+"-c"+col]});
+    rowDigits[col]=resultDigit;
+    return carryOut;
   }
-  steps=[
-    {id:"p1_1",ans:p1%10,h:[3,8]},{id:"p1_10",ans:Math.floor(p1/10)%10,h:[2,8]},{id:"p1_100",ans:Math.floor(p1/100)||0,h:[2,8],skip:Math.floor(p1/100)===0},
-    {id:"p2_10",ans:p2%10,h:[3,7]},{id:"p2_100",ans:Math.floor(p2/10)%10,h:[2,7]},{id:"p2_1000",ans:Math.floor(p2/100)||0,h:[2,7],skip:Math.floor(p2/100)===0},
-    {id:"a1",ans:total%10,h:[13,18]},{id:"a10",ans:Math.floor(total/10)%10,h:[12,17]},{id:"a100",ans:Math.floor(total/100)%10,h:[11,16]},
-    {id:"a1000",ans:Math.floor(total/1000)||0,h:[10,15],skip:Math.floor(total/1000)===0}
-  ];
+  for(let r=0;r<len2;r++){
+    const rowDigits=new Array(cols).fill(null);let carry=0,bDigit=bDigits[r];
+    for(let k=0;k<len1;k++)carry=addPartial(r,k,bDigit,carry,rowDigits);
+    if(carry>0){
+      const col=cols-1-len1-r;rowDigits[col]=carry;
+      steps.push({kind:"final-carry",phase:"partial",row:r,col:col,expected:String(carry),place:placeName(col),focusIds:["c_p"+(r+1)+"-c"+col,"p"+(r+1)+"-c"+col]});
+    }
+    pRows.push(rowDigits);
+  }
+  if(len2>1){
+    let carry=0;const sumStart=cols-(len1+len2);
+    for(let col=cols-1;col>=sumStart;col--){
+      const values=[];pRows.forEach(function(row){if(row[col]!==null)values.push(row[col])});
+      if(values.length===0&&carry===0)continue;
+      const total=values.reduce(function(s,v){return s+v},0)+carry,carryOut=Math.floor(total/10),resultDigit=total%10;
+      const expression=(values.length?values:["0"]).map(String).join("＋")+(carry?"＋"+carry:"");
+      steps.push({kind:"carry-check",phase:"sum",row:null,col:col,expression:expression,fullTotal:total,carryOut:carryOut,answer:carryOut>0?"yes":"no",focusIds:["p1-c"+col,"p2-c"+col]});
+      if(carryOut>0)steps.push({kind:"carry-input",phase:"sum",row:null,col:col,carryCol:col-1,expected:String(carryOut),expression:expression,focusIds:["c_sum-c"+(col-1)]});
+      steps.push({kind:"digit-input",phase:"sum",row:null,col:col,expected:String(resultDigit),carryOut:carryOut,carryCol:col-1,place:placeName(col),expression:expression+"＝",focusIds:["ans-c"+col,"p1-c"+col,"p2-c"+col]});
+      carry=carryOut;
+    }
+    if(carry>0){
+      const col=sumStart-1;
+      if(col>=0)steps.push({kind:"final-sum-carry",phase:"sum",row:null,col:col,expected:String(carry),place:placeName(col),focusIds:["c_sum-c"+col,"ans-c"+col]});
+    }
+  }
 }
 function renderLevelChoice(){
   $("#levelChoice").innerHTML=LEVELS.map(function(l){return '<button type="button" class="level-card" data-level="'+l.id+'"><span class="level">'+l.short+'</span><span class="name">'+l.name+'</span><span class="desc">'+l.description+'</span><span class="example">'+l.example+'</span></button>'}).join("");
@@ -281,7 +303,7 @@ function updateProblemLabels(){
 }
 function setupBattleEnemy(){
   const enemy=battleState.enemies[battleState.enemyIndex];if(!enemy)return;
-  battleState.enemyMaxHp=steps.filter(function(s){return !s.skip}).length;battleState.enemyHp=battleState.enemyMaxHp;
+  battleState.enemyMaxHp=steps.filter(function(s){return s.kind==="digit-input"}).length;battleState.enemyHp=battleState.enemyMaxHp;
   const hero=HEROES[battleState.heroIndex];
   $("#heroBattleImage").src=FANTASY_BASE+hero.image+".webp";$("#heroBattleName").textContent=hero.name;
   $("#enemyBattleImage").src=FANTASY_BASE+"monsters/zako/"+enemy[0]+".webp";$("#enemyBattleName").textContent=enemy[1];
@@ -333,37 +355,32 @@ function getDigitInfo(id){
   const place=id.split("_")[1],pn=place==="1"?"一の位":place==="10"?"十の位":place==="100"?"百の位":place==="1000"?"千の位":"一万の位";
   return{title:"答えの "+pn,text:"できた部分をたして、答えの"+pn+"を書こう。",prompt:p1+(p2?" + "+p2:"")}
 }
+function rightDigits(n,count){
+  const arr=String(n).split("").map(Number),out=new Array(count).fill("");
+  for(let i=0;i<arr.length;i++)out[count-arr.length+i]=arr[i];
+  return out;
+}
+function appendDigitRow(prefix,rowClass,count){
+  for(let i=0;i<count;i++){const cell=document.createElement("div");cell.className="cell "+rowClass;cell.id=prefix+"-c"+i;$("#board").appendChild(cell)}
+}
+function appendCarryRow(prefix,rowClass,count){
+  for(let i=0;i<count;i++){const wrap=document.createElement("div");wrap.className="cell carry-row";const carry=document.createElement("div");carry.className="carry "+rowClass;carry.id=prefix+"-c"+i;wrap.appendChild(carry);$("#board").appendChild(wrap)}
+}
+function appendLine(){const line=document.createElement("div");line.className="line";$("#board").appendChild(line)}
 function renderBoard(){
-  const b=$("#board"),colCount=currentLevel===5?6:5;b.className="board col"+colCount;let html="";
-  if(currentLevel===5){
-    const a=String(n1),bb=String(n2).padStart(2," ");
-    html='<div class="cell"></div><div class="cell"></div><div class="cell">'+a[0]+'</div><div class="cell">'+a[1]+'</div><div class="cell">'+a[2]+'</div><div class="cell"></div>'+
-      '<div class="cell"></div><div class="cell">×</div><div class="cell"></div><div class="cell">'+bb[0]+'</div><div class="cell">'+bb[1]+'</div><div class="cell"></div>'+
-      '<div class="line w6"></div>'+
-      '<div class="cell"></div><div id="p1_1000" class="cell input"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div>'+
-      '<div id="p2_10000" class="cell input"></div><div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell muted-zero">0</div><div class="cell"></div>'+
-      '<div class="line w6"></div>'+
-      '<div id="a10000" class="cell input"></div><div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell"></div>';
-  }else if(currentLevel===1){
-    const a=String(n1).padStart(2," ");
-    html='<div class="cell"></div><div class="cell"></div><div class="cell">'+a[0]+'</div><div class="cell">'+a[1]+'</div><div class="cell"></div>'+
-      '<div class="cell">×</div><div class="cell"></div><div class="cell"></div><div class="cell">'+n2+'</div><div class="cell"></div>'+
-      '<div class="line w5"></div>'+
-      '<div class="cell"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div>';
-  }else{
-    const a=String(n1).padStart(2," "),bb=String(n2).padStart(2," ");
-    html='<div class="cell"></div><div class="cell"></div><div class="cell">'+a[0]+'</div><div class="cell">'+a[1]+'</div><div class="cell"></div>'+
-      '<div class="cell">×</div><div class="cell"></div><div class="cell">'+bb[0]+'</div><div class="cell">'+bb[1]+'</div><div class="cell"></div>'+
-      '<div class="line w5"></div>'+
-      '<div class="cell"></div><div id="p1_100" class="cell input"></div><div id="p1_10" class="cell input"></div><div id="p1_1" class="cell input"></div><div class="cell"></div>'+
-      '<div id="p2_1000" class="cell input"></div><div id="p2_100" class="cell input"></div><div id="p2_10" class="cell input"></div><div class="cell muted-zero">0</div><div class="cell"></div>'+
-      '<div class="line w5"></div>'+
-      '<div id="a1000" class="cell input"></div><div id="a100" class="cell input"></div><div id="a10" class="cell input"></div><div id="a1" class="cell input"></div><div class="cell"></div>';
-  }
-  b.innerHTML=html;
-  $$(".cell.input",b).forEach(function(cell){
-    const span=document.createElement("span");span.className="num-display";cell.appendChild(span);
-    const canvas=document.createElement("canvas");canvas.className="memo-canvas";canvas.width=40;canvas.height=40;cell.appendChild(canvas);initDrawing(canvas);
+  const b=$("#board"),colCount=currentLevel===5?6:5;b.className="board col"+colCount;b.style.gridTemplateColumns="repeat("+colCount+",var(--cell))";b.innerHTML="";
+  appendDigitRow("n1","operand",colCount);appendDigitRow("n2","operand",colCount);
+  const aCols=rightDigits(n1,colCount),bCols=rightDigits(n2,colCount);
+  aCols.forEach(function(v,i){if(v!=="")$("#n1-c"+i).textContent=v});bCols.forEach(function(v,i){if(v!=="")$("#n2-c"+i).textContent=v});
+  const L1=String(n1).length,L2=String(n2).length,longer=Math.max(L1,L2),opCol=Math.max(0,colCount-longer-1);
+  $("#n2-c"+opCol).textContent="×";$("#n2-c"+opCol).classList.add("op");
+  for(let r=0;r<L2;r++){appendLine();appendCarryRow("c_p"+(r+1),"p"+(r+1)+"-carry",colCount);appendDigitRow("p"+(r+1),"p"+(r+1)+"-digit",colCount)}
+  if(L2>1){appendLine();appendCarryRow("c_sum","sum-carry",colCount);appendDigitRow("ans","ans-digit",colCount)}
+  $(".cell",b).forEach(function(cell){
+    if(/^p\d+-c/.test(cell.id)){
+      const span=document.createElement("span");span.className="num-display";cell.appendChild(span);
+      const canvas=document.createElement("canvas");canvas.className="memo-canvas";canvas.width=40;canvas.height=40;cell.appendChild(canvas);initDrawing(canvas);
+    }
   });
 }
 function initDrawing(canvas){
@@ -380,21 +397,49 @@ function checkAutoSkip(){
 }
 function setFeedback(msg,type){const el=$("#feedback");el.textContent=msg;el.className="feedback "+type}
 function updateStepRail(){
-  const step=activeStep(),pills=$$(".step-pill");pills.forEach(function(p){p.classList.remove("active","done");p.hidden=false});
+  const step=activeStep(),pills=$(".step-pill");
+  pills.forEach(function(p){p.classList.remove("active","done");p.hidden=false});
   if(!step){pills.forEach(function(p){p.classList.add("done")});return}
-  const group=step.id.indexOf("p1_")===0?0:step.id.indexOf("p2_")===0?1:2;
-  pills.forEach(function(p,i){if(i<group)p.classList.add("done");if(i===group)p.classList.add("active")});
-  if(currentLevel===1){pills[0].textContent="① 計算";pills[1].textContent="② 答え";pills[2].hidden=true}
-  else{pills[0].textContent="① 一の位";pills[1].textContent="② 十の位";pills[2].textContent="③ 答え"}
+  pills[0].textContent="① くり上がり？";pills[1].textContent="② くり上げる数";pills[2].textContent="③ 答えを書く";
+  if(step.kind==="carry-check")pills[0].classList.add("active");
+  else if(step.kind==="carry-input"){pills[0].classList.add("done");pills[1].classList.add("active")}
+  else{pills[0].classList.add("done");pills[1].classList.add("done");pills[2].classList.add("active")}
 }
 function updateCurrentStep(){
   const step=activeStep();updateStepRail();
-  if(!step){$("#instructionTitle").textContent="筆算完成！";$("#instructionText").textContent="この問題の筆算を完成させました。";$("#calculationPrompt").textContent=n1+"×"+n2+"＝"+n1*n2;$("#answerLabel").textContent="完成";$("#answerDisplay").textContent="✓";$("#answerDisplay").style.background="#effaf4";$("#answerDisplay").style.borderColor="#67b78d";$("#numberPad").innerHTML="";return}
-  const info=getDigitInfo(step.id),hint=stateHintVisible;
-  $("#instructionTitle").textContent=info.title;$("#instructionText").textContent=info.text;
-  $("#calculationPrompt").textContent=hint?(step.id.indexOf("p1_")===0?n1+" × "+n2%10+" ＝ "+n1*(n2%10):step.id.indexOf("p2_")===0?n1+" × "+Math.floor(n2/10)+" ＝ "+n1*Math.floor(n2/10):info.prompt+" ＝ "+n1*n2):info.prompt;
-  $("#answerLabel").textContent="数字を入力";$("#answerDisplay").textContent=(step.input||"＿");$("#answerDisplay").style.background="#fff";$("#answerDisplay").style.borderColor="";renderKeypad();updateBoardVisuals();
+  if(!step){
+    $("#instructionTitle").textContent="筆算完成！";$("#instructionText").textContent="くり上がりを確認しながら、筆算を完成させました。";$("#calculationPrompt").textContent=n1+"×"+n2+"＝"+(n1*n2);
+    $("#answerLabel").textContent="完成";$("#answerDisplay").textContent="✓";$("#answerDisplay").style.background="#effaf4";$("#answerDisplay").style.borderColor="#67b78d";$("#numberPad").innerHTML="";return;
+  }
+  if(step.kind==="carry-check"){
+    $("#instructionTitle").textContent="くり上がりはある？";$("#instructionText").textContent="まず計算して、10以上になるか考えよう.";
+    $("#calculationPrompt").textContent=stateHintVisible?step.expression+" "+step.fullTotal:step.expression;
+    $("#answerLabel").textContent="はい・いいえ";$("#answerDisplay").textContent="はい？ いいえ？";$("#answerDisplay").style.background="#fff";$("#answerDisplay").style.borderColor="";
+  }else if(step.kind==="carry-input"){
+    $("#instructionTitle").textContent="くり上げる数は？";$("#instructionText").textContent="10のくらいの数を入力して、上のくらいにメモしよう。";
+    $("#calculationPrompt").textContent=step.expression;$("#answerLabel").textContent="くり上げる数（10のくらい）";$("#answerDisplay").textContent=step.input||"＿";$("#answerDisplay").style.background="#fffdf0";$("#answerDisplay").style.borderColor="#d6b64d";
+  }else if(step.kind==="final-carry"||step.kind==="final-sum-carry"){
+    $("#instructionTitle").textContent="最後のくり上がり";$("#instructionText").textContent="最後のくり上がりを答えに書きます。";$("#calculationPrompt").textContent="くり上がり "+step.expected;$("#answerLabel").textContent="答えに書く";$("#answerDisplay").textContent="✓";$("#answerDisplay").style.background="#effaf4";$("#answerDisplay").style.borderColor="#67b78d";
+  }else{
+    $("#instructionTitle").textContent=step.place+"の答え";$("#instructionText").textContent="計算した答えの数字を書こう。";$("#calculationPrompt").textContent=stateHintVisible?step.expression+" "+step.fullTotal:step.expression;$("#answerLabel").textContent="数字を入力";$("#answerDisplay").textContent=step.input||"＿";$("#answerDisplay").style.background="#fff";$("#answerDisplay").style.borderColor="";
+  }
+  renderKeypad();updateBoardVisuals();
 }
+function renderKeypad(){
+  const step=activeStep(),pad=$("#numberPad");
+  if(!step||step.kind==="final-carry"||step.kind==="final-sum-carry"){pad.innerHTML="";return}
+  if(step.kind==="carry-check"){pad.innerHTML='<button type="button" class="pad-button carry-choice" data-choice="yes">はい</button><button type="button" class="pad-button carry-choice" data-choice="no">いいえ</button>';return}
+  const keys=["1","2","3","4","5","6","7","8","9","⌫","0","決定"];
+  pad.innerHTML=keys.map(function(k){const cls=k==="決定"?"submit":k==="⌫"?"function":"";return '<button type="button" class="pad-button '+cls+'" data-key="'+k+'">'+k+"</button>"}).join("");
+}
+function updateBoardVisuals(){
+  const b=$("#board");$(".cell",b).forEach(function(c){c.classList.remove("active","focus","wrong","active-carry")});
+  const step=activeStep();if(!step)return;
+  (step.focusIds||[]).forEach(function(id){const t=$("#"+id);if(t)t.classList.add(step.kind==="carry-input"?"active-carry":"focus")});
+  if(step.kind==="carry-input"){const id=step.phase==="sum"?"c_sum-c"+step.carryCol:"c_p"+(step.row+1)+"-c"+step.carryCol;$("#"+id)?.classList.add("active-carry")}
+  if(step.kind==="digit-input"){const id=step.phase==="sum"?"ans-c"+step.col:"p"+(step.row+1)+"-c"+step.col;$("#"+id)?.classList.add("active")}
+}
+
 function renderKeypad(){
   const step=activeStep();if(!step){$("#numberPad").innerHTML="";return}
   const keys=["1","2","3","4","5","6","7","8","9","⌫","0","決定"];
@@ -404,15 +449,41 @@ function updateBoardVisuals(){
   $$(".cell",$("#board")).forEach(function(c){c.classList.remove("active","focus","wrong")});const step=activeStep();if(!step)return;
   const cell=$("#"+step.id);if(cell)cell.classList.add("active");(step.h||[]).forEach(function(i){const t=$("#board").children[i];if(t&&!t.classList.contains("line"))t.classList.add("focus")});
 }
-function checkAnswer(){
-  const step=activeStep();if(!step||battleState.finished)return;const cell=$("#"+step.id);if(!cell)return;const input=cell.querySelector(".num-display").textContent;
-  if(input!==String(step.ans)){
-    cell.classList.remove("wrong");void cell.offsetWidth;cell.classList.add("wrong");clearInput();stateHintVisible=false;registerMistake();setFeedback("もういちど。数字の位置を見てみよう。","bad");return;
-  }
-  cell.classList.remove("active");cell.classList.add("done");cell.querySelector(".num-display").textContent=input;battlePlaceCorrect();
-  setFeedback("正解！そのまま次へ。","good");cur++;checkAutoSkip();
-  if(cur>=steps.length)setTimeout(function(){completeBattleQuestion()},520);else setTimeout(function(){stateHintVisible=false;updateCurrentStep()},260);
+function handleCarryChoice(choice){
+  const step=activeStep();if(!step||step.kind!=="carry-check"||battleState.finished)return;
+  if(choice!==step.answer){markCurrentStepWrong();registerMistake();setFeedback("10以上になるか、もう一度計算してみよう。","bad");return}
+  playSound("correct");stateHintVisible=false;setFeedback(choice==="yes"?"くり上がりあり。いくつ上げるか入力しよう。":"くり上がりなし。答えの数字を書こう。","good");
+  cur++;setTimeout(function(){updateCurrentStep()},180);
 }
+function checkAnswer(){
+  const step=activeStep();if(!step||battleState.finished)return;
+  if(step.kind==="final-carry"||step.kind==="final-sum-carry"){
+    const id=step.phase==="sum"?"ans-c"+step.col:"p"+(step.row+1)+"-c"+step.col,cell=$("#"+id);
+    if(cell){cell.textContent=step.expected;cell.classList.add("done")}
+    cur++;setTimeout(function(){if(cur>=steps.length)completeBattleQuestion();else updateCurrentStep()},180);return;
+  }
+  const id=step.kind==="carry-input"?(step.phase==="sum"?"c_sum-c"+step.carryCol:"c_p"+(step.row+1)+"-c"+step.carryCol):(step.phase==="sum"?"ans-c"+step.col:"p"+(step.row+1)+"-c"+step.col);
+  const cell=$("#"+id);if(!cell)return;
+  const display=cell.querySelector(".num-display"),input=display?display.textContent:"",expected=String(step.expected);
+  if(input!==expected){
+    if(display)display.textContent="";step.input="";markCurrentStepWrong();registerMistake();stateHintVisible=false;
+    setFeedback(step.kind==="carry-input"?"くり上げる数をもう一度考えよう。":"もういちど。答えの数字をたしかめよう。","bad");return;
+  }
+  if(display)display.textContent=input;cell.classList.remove("active","wrong");cell.classList.add("done");step.input=input;
+  if(step.kind==="carry-input"){
+    const carryId=step.phase==="sum"?"c_sum-c"+step.carryCol:"c_p"+(step.row+1)+"-c"+step.carryCol;
+    const carryCell=$("#"+carryId);
+    if(carryCell)carryCell.textContent=input;
+    cur++;setFeedback("くり上がり "+input+" をメモしたよ。","good");setTimeout(function(){updateCurrentStep()},220);return;
+  }
+  battlePlaceCorrect();stateHintVisible=false;setFeedback("正解！つぎの計算へ。","good");cur++;
+  setTimeout(function(){if(cur>=steps.length)completeBattleQuestion();else updateCurrentStep()},260);
+}
+function markCurrentStepWrong(){
+  const step=activeStep();if(!step)return;
+  (step.focusIds||[]).forEach(function(id){const cell=$("#"+id);if(cell){cell.classList.remove("wrong");void cell.offsetWidth;cell.classList.add("wrong")}})
+}
+
 function completeBattleQuestion(){
   if(battleState.finished)return;
   battleState.correct++;
@@ -451,15 +522,17 @@ function showBadges(){
   $("#badgeOverlay").hidden=false;
 }
 function numInput(v){
-  const step=activeStep();if(!step)return;const display=$("#"+step.id)?.querySelector(".num-display");if(!display)return;
-  display.textContent=v==="del"?"":String(v);stateHintVisible=false;$("#answerDisplay").textContent=display.textContent||"＿";
+  const step=activeStep();if(!step||step.kind==="carry-check"||step.kind==="final-carry"||step.kind==="final-sum-carry")return;
+  const id=step.kind==="carry-input"?(step.phase==="sum"?"c_sum-c"+step.carryCol:"c_p"+(step.row+1)+"-c"+step.carryCol):(step.phase==="sum"?"ans-c"+step.col:"p"+(step.row+1)+"-c"+step.col);
+  const display=$("#"+id)?.querySelector(".num-display");if(!display)return;
+  display.textContent=v==="del"?"":String(v);step.input=display.textContent;stateHintVisible=false;$("#answerDisplay").textContent=display.textContent||"＿";
 }
 
 $("#modeChoice").addEventListener("click",function(e){const btn=e.target.closest("[data-mode]");if(!btn)return;battleState.mode=btn.dataset.mode;saveBattleSetup();updateHomeSelection()});
 $("#startButton").addEventListener("click",startBattle);$("#homeButton").addEventListener("click",backHome);$("#resultHome").addEventListener("click",backHome);
 $("#resultAgain").addEventListener("click",function(){$("#resultOverlay").hidden=true;startBattle()});$("#retryButton").addEventListener("click",retryQuestion);
 $("#hintButton").addEventListener("click",function(){if(!activeStep())return;stateHintVisible=true;updateCurrentStep();setFeedback("計算をたしかめてから、数字を書こう。","neutral")});
-$("#numberPad").addEventListener("click",function(e){const btn=e.target.closest("[data-key]");if(!btn)return;btn.dataset.key==="決定"?checkAnswer():numInput(btn.dataset.key)});
+$("#numberPad").addEventListener("click",function(e){const choice=e.target.closest("[data-choice]");if(choice){handleCarryChoice(choice.dataset.choice);return}const btn=e.target.closest("[data-key]");if(!btn)return;btn.dataset.key==="決定"?checkAnswer():numInput(btn.dataset.key)});
 $("#recordButton").addEventListener("click",showRecord);$("#recordClose").addEventListener("click",function(){$("#recordOverlay").hidden=true});$("#badgeButton").addEventListener("click",showBadges);$("#badgeClose").addEventListener("click",function(){$("#badgeOverlay").hidden=true});
 $$(".overlay").forEach(function(o){o.addEventListener("click",function(e){if(e.target===o&&o.id!=="resultOverlay")o.hidden=true})});
 window.addEventListener("keydown",function(e){if(!$("#gameScreen").classList.contains("active"))return;if(e.key>="0"&&e.key<="9")numInput(e.key);if(e.key==="Backspace")numInput("del");if(e.key==="Enter")checkAnswer()});
