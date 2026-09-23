@@ -390,7 +390,7 @@ function renderBoard(){
   $("#n2-c"+opCol).textContent="×";$("#n2-c"+opCol).classList.add("op");
   for(let r=0;r<L2;r++){appendLine();appendCarryRow("c_p"+(r+1),"p"+(r+1)+"-carry",colCount);appendDigitRow("p"+(r+1),"p"+(r+1)+"-digit",colCount)}
   if(L2>1){appendLine();appendCarryRow("c_sum","sum-carry",colCount);appendDigitRow("ans","ans-digit",colCount)}
-  $(".cell",b).forEach(function(cell){
+  $$(".cell",b).forEach(function(cell){
     if(/^p\d+-c/.test(cell.id)){
       const span=document.createElement("span");span.className="num-display";cell.appendChild(span);
       const canvas=document.createElement("canvas");canvas.className="memo-canvas";canvas.width=40;canvas.height=40;cell.appendChild(canvas);initDrawing(canvas);
